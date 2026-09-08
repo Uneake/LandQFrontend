@@ -190,6 +190,22 @@ export default function Home() {
           </div>
         )}
 
+        {/* Loading Modal */}
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2C2520]/40 backdrop-blur-sm transition-opacity">
+            <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4 max-w-xs mx-4 text-center">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full border-4 border-[#EAE0D4]"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-[#C59B27] border-t-transparent animate-spin"></div>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#1C3A27]">กำลังค้นหาข้อมูล...</h3>
+                <p className="text-xs text-[#7A695B] mt-1">กรุณารอสักครู่ ระบบกำลังค้นหาโฉนดที่ดิน</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Loading Skeleton */}
         {loading && (
           <div className="space-y-3">
