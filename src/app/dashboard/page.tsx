@@ -442,13 +442,12 @@ export default function DashboardPage() {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2.5 transition-all transform animate-bounce-short ${
-              t.type === "success"
-                ? "bg-[#1C3A27] text-white border border-[#C59B27]"
-                : t.type === "error"
+            className={`pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2.5 transition-all transform animate-bounce-short ${t.type === "success"
+              ? "bg-[#1C3A27] text-white border border-[#C59B27]"
+              : t.type === "error"
                 ? "bg-[#7A3020] text-white border border-red-400"
                 : "bg-[#2C2520] text-white border border-gray-500"
-            }`}
+              }`}
           >
             {t.type === "success" && (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C59B27" strokeWidth="2.5">
@@ -489,11 +488,10 @@ export default function DashboardPage() {
                   ระบบบริหารจัดการที่ดิน
                 </h1>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                    user.role === "super_admin"
-                      ? "bg-[#C59B27] text-[#1C3A27]"
-                      : "bg-[#2D5A3F] text-white border border-[#C59B27]/40"
-                  }`}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${user.role === "super_admin"
+                    ? "bg-[#C59B27] text-[#1C3A27]"
+                    : "bg-[#2D5A3F] text-white border border-[#C59B27]/40"
+                    }`}
                 >
                   {user.role === "super_admin" ? "Super Admin" : "Admin"}
                 </span>
@@ -547,11 +545,10 @@ export default function DashboardPage() {
 
             <button
               onClick={() => setActiveTab("bookings")}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${
-                activeTab === "bookings"
-                  ? "bg-[#1C3A27] text-white shadow-sm"
-                  : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === "bookings"
+                ? "bg-[#1C3A27] text-white shadow-sm"
+                : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
+                }`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -565,11 +562,10 @@ export default function DashboardPage() {
             {user.role === "super_admin" && (
               <button
                 onClick={() => setActiveTab("admins")}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${
-                  activeTab === "admins"
-                    ? "bg-[#1C3A27] text-white shadow-sm"
-                    : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
-                }`}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === "admins"
+                  ? "bg-[#1C3A27] text-white shadow-sm"
+                  : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
+                  }`}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -586,11 +582,10 @@ export default function DashboardPage() {
 
             <button
               onClick={() => setActiveTab("profile")}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${
-                activeTab === "profile"
-                  ? "bg-[#1C3A27] text-white shadow-sm"
-                  : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
-              }`}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === "profile"
+                ? "bg-[#1C3A27] text-white shadow-sm"
+                : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
+                }`}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -617,10 +612,10 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-[#1C3A27]">
-                    จัดการข้อมูลการนัดหมายรังวัดและโฉนด
+                    จัดการข้อมูลการนัดหมายการถ่ายโอนมรดกที่ดิน
                   </h2>
                   <p className="text-xs text-[#7A695B] mt-0.5">
-                    ค้นหา เพิ่ม แก้ไข และลบข้อมูลการจองคิวรังวัดที่ดิน
+                    ค้นหา เพิ่ม แก้ไข และลบข้อมูลการจองคิวการถ่ายโอนมรดกที่ดิน
                   </p>
                 </div>
                 <button
@@ -684,8 +679,8 @@ export default function DashboardPage() {
                       <th className="py-3 px-4">วันที่นัด</th>
                       <th className="py-3 px-4">โฉนดที่ดิน</th>
                       <th className="py-3 px-4">ตำบล</th>
-                      <th className="py-3 px-4">ผู้สืบสันดาน/ทายาท</th>
-                      <th className="py-3 px-4">ผู้นัดรังวัด</th>
+                      <th className="py-3 px-4">เจ้ามรดก</th>
+                      <th className="py-3 px-4">ผู้นัดหมาย</th>
                       <th className="py-3 px-4">ค่าธรรมเนียม</th>
                       <th className="py-3 px-4">เจ้าหน้าที่</th>
                       <th className="py-3 px-4 text-center">จัดการ</th>
@@ -702,7 +697,7 @@ export default function DashboardPage() {
                     ) : bookings.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-8 text-center text-[#7A695B]">
-                          ไม่พบข้อมูลการจองคิวรังวัดที่ดิน
+                          ไม่พบข้อมูลการนัดหมายการถ่ายโอนมรดกที่ดิน
                         </td>
                       </tr>
                     ) : (
@@ -851,11 +846,10 @@ export default function DashboardPage() {
                             <td className="py-3.5 px-4 text-[#4A3E37]">{a.email}</td>
                             <td className="py-3.5 px-4">
                               <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                                  a.role === "super_admin"
-                                    ? "bg-[#C59B27] text-[#1C3A27]"
-                                    : "bg-[#2D5A3F] text-white"
-                                }`}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${a.role === "super_admin"
+                                  ? "bg-[#C59B27] text-[#1C3A27]"
+                                  : "bg-[#2D5A3F] text-white"
+                                  }`}
                               >
                                 {a.role}
                               </span>
@@ -1176,7 +1170,7 @@ export default function DashboardPage() {
 
                 <div>
                   <label className="block font-bold text-[#4A3E37] mb-1">
-                    ผู้นัดรังวัด (Appointed By) *
+                    ผู้นัดหมาย (Appointed By) *
                   </label>
                   <input
                     type="text"
