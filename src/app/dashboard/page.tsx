@@ -311,6 +311,7 @@ export default function DashboardPage() {
           limit: 10,
           all: true,
           token: accessToken || undefined,
+          admin: true,
         });
         setBookings(res.data);
         setBookingTotal(res.total);

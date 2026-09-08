@@ -36,6 +36,7 @@ export default async function getBookings(params: {
   limit?: number;
   all?: boolean;
   token?: string;
+  admin?: boolean;
 }): Promise<BookingsResponse> {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
@@ -50,7 +51,7 @@ export default async function getBookings(params: {
     : {};
 
   const res = await fetch(
-    `${BACKEND_URL}/api/v1/bookings?${query.toString()}`,
+    `${BACKEND_URL}/api/v1/bookings${params.admin ? "/admin" : ""}?${query.toString()}`,
     { method: "GET", cache: "no-store", headers }
   );
 
