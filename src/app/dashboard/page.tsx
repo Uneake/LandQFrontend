@@ -1017,7 +1017,14 @@ export default function DashboardPage() {
                       type="text"
                       value={bookingSearch}
                       disabled={bookingsLoading}
-                      onChange={(e) => setBookingSearch(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBookingSearch(value);
+                        if (!value.trim()) {
+                          setBookingPage(1);
+                          fetchBookingsList("", 1, bookingSearchDate, bookingSearchEmployee);
+                        }
+                      }}
                       placeholder="เลขโฉนดที่ดิน..."
                       className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
                     />
@@ -1049,7 +1056,12 @@ export default function DashboardPage() {
                         type="date"
                         value={bookingSearchDate}
                         disabled={bookingsLoading}
-                        onChange={(e) => setBookingSearchDate(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setBookingSearchDate(value);
+                          setBookingPage(1);
+                          fetchBookingsList(bookingSearch, 1, value, bookingSearchEmployee);
+                        }}
                         onClick={(e) => {
                           try {
                             (e.target as HTMLInputElement).showPicker?.();
@@ -1084,7 +1096,12 @@ export default function DashboardPage() {
                     <select
                       value={bookingSearchEmployee}
                       disabled={bookingsLoading}
-                      onChange={(e) => setBookingSearchEmployee(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBookingSearchEmployee(value);
+                        setBookingPage(1);
+                        fetchBookingsList(bookingSearch, 1, bookingSearchDate, value);
+                      }}
                       className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
                     >
                       <option value="">— เจ้าหน้าที่ทั้งหมด —</option>
