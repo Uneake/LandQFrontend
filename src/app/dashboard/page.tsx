@@ -142,22 +142,6 @@ export default function DashboardPage() {
     }
   }, [authLoading, user, router]);
 
-  // Detect sessions revoked by a super admin while this dashboard is open.
-  useEffect(() => {
-    if (!accessToken || !user) return;
-
-    const validateSession = () => {
-      void refreshUser();
-    };
-    const interval = window.setInterval(validateSession, 15000);
-    window.addEventListener("focus", validateSession);
-
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", validateSession);
-    };
-  }, [accessToken, user, refreshUser]);
-
   /* ─────────────────────── Bookings State ─────────────────────── */
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);

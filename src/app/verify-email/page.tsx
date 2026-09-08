@@ -22,6 +22,7 @@ function VerifyEmailContent() {
     const token = searchParams.get("token");
     const id = searchParams.get("id");
 
+
     if (!token || !id) {
       setState("error");
       setMessage("Official link invalid. Missing required security token or identification number.");
