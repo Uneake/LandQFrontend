@@ -1972,7 +1972,7 @@ export default function DashboardPage() {
       )}
 
       {showInlineEmpForm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
               <h3 className="font-bold text-lg text-[#1C3A27]">เพิ่มเจ้าหน้าที่ใหม่</h3>
