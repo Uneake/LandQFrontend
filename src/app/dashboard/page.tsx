@@ -252,7 +252,7 @@ export default function DashboardPage() {
       const updated = Array.from(new Set([...prev, id]));
       try {
         localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
     addToast("info", "ละเว้นการแจ้งเตือนรายการนี้แล้ว");
@@ -263,7 +263,7 @@ export default function DashboardPage() {
       const updated = Array.from(new Set([...prev, ...ids]));
       try {
         localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
     addToast("info", "ละเว้นการแจ้งเตือนทั้งหมดแล้ว");
@@ -274,7 +274,7 @@ export default function DashboardPage() {
       const updated = prev.filter((item) => item !== id);
       try {
         localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
     addToast("info", "ยกเลิกการละเว้นรายการนี้แล้ว");
@@ -999,7 +999,7 @@ export default function DashboardPage() {
                         setBookingPage(1);
                         fetchBookingsList(val, 1, bookingSearchDate, bookingSearchEmployee);
                       }}
-                      placeholder="ค้นหาโฉนดที่ดิน, ตำบล, ทายาท, ผู้นัดหมาย..."
+                      placeholder="เลขโฉนดที่ดิน..."
                       className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
                     />
                     {bookingSearch && (
@@ -1037,7 +1037,7 @@ export default function DashboardPage() {
                         onClick={(e) => {
                           try {
                             (e.target as HTMLInputElement).showPicker?.();
-                          } catch {}
+                          } catch { }
                         }}
                         className="w-full py-1 text-xs text-[#2C2520] outline-none bg-transparent cursor-pointer"
                         title="ค้นหาตามวันที่นัดหมาย"
@@ -1156,24 +1156,22 @@ export default function DashboardPage() {
                         return (
                           <tr
                             key={b._id}
-                            className={`transition ${
-                              isPast
-                                ? isDismissed
-                                  ? "bg-stone-50/70 hover:bg-stone-100/70 border-l-4 border-l-stone-300"
-                                  : "bg-red-50/40 hover:bg-red-50/70 border-l-4 border-l-red-500"
-                                : "hover:bg-[#FDFAF7]"
-                            }`}
+                            className={`transition ${isPast
+                              ? isDismissed
+                                ? "bg-stone-50/70 hover:bg-stone-100/70 border-l-4 border-l-stone-300"
+                                : "bg-red-50/40 hover:bg-red-50/70 border-l-4 border-l-red-500"
+                              : "hover:bg-[#FDFAF7]"
+                              }`}
                           >
                             <td className="py-3.5 px-4 font-medium text-[#1C3A27]">
                               <div className="flex flex-col gap-1">
                                 <span>{b.appointmentDate}</span>
                                 {isPast && (
                                   <span
-                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${
-                                      isDismissed
-                                        ? "bg-stone-200 text-stone-600 border border-stone-300"
-                                        : "bg-red-100 text-red-700 border border-red-200"
-                                    }`}
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${isDismissed
+                                      ? "bg-stone-200 text-stone-600 border border-stone-300"
+                                      : "bg-red-100 text-red-700 border border-red-200"
+                                      }`}
                                   >
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
@@ -1222,11 +1220,10 @@ export default function DashboardPage() {
                                 {isPast && (
                                   <button
                                     onClick={() => isDismissed ? unDismissOverdue(b._id) : dismissOverdue(b._id)}
-                                    className={`p-1.5 rounded-lg transition cursor-pointer ${
-                                      isDismissed
-                                        ? "text-stone-400 hover:text-stone-700 hover:bg-stone-100"
-                                        : "text-amber-700 hover:text-amber-900 hover:bg-amber-100"
-                                    }`}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer ${isDismissed
+                                      ? "text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                                      : "text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                                      }`}
                                     title={isDismissed ? "ยกเลิกการละเว้น (Un-dismiss)" : "ละเว้นการแจ้งเตือน (Dismiss)"}
                                   >
                                     {isDismissed ? (
@@ -1593,11 +1590,10 @@ export default function DashboardPage() {
                         setPasswordError((prev) => ({ ...prev, newPassword: "", general: "" }));
                       }}
                       placeholder="อย่างน้อย 8 ตัวอักษร"
-                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${
-                        passwordError.newPassword
-                          ? "border-red-500 focus:border-red-600 bg-red-50/40"
-                          : "border-[#D5C9BE] focus:border-[#C59B27]"
-                      }`}
+                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${passwordError.newPassword
+                        ? "border-red-500 focus:border-red-600 bg-red-50/40"
+                        : "border-[#D5C9BE] focus:border-[#C59B27]"
+                        }`}
                     />
                     {passwordError.newPassword && (
                       <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1.5">
@@ -1625,11 +1621,10 @@ export default function DashboardPage() {
                         setPasswordError((prev) => ({ ...prev, confirmPassword: "", general: "" }));
                       }}
                       placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง"
-                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${
-                        passwordError.confirmPassword
-                          ? "border-red-500 focus:border-red-600 bg-red-50/40"
-                          : "border-[#D5C9BE] focus:border-[#C59B27]"
-                      }`}
+                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${passwordError.confirmPassword
+                        ? "border-red-500 focus:border-red-600 bg-red-50/40"
+                        : "border-[#D5C9BE] focus:border-[#C59B27]"
+                        }`}
                     />
                     {passwordError.confirmPassword && (
                       <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1.5">
@@ -1791,7 +1786,7 @@ export default function DashboardPage() {
                     onClick={(e) => {
                       try {
                         (e.target as HTMLInputElement).showPicker?.();
-                      } catch {}
+                      } catch { }
                     }}
                     className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
                   />
