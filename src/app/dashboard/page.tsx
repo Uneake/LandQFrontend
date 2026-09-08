@@ -325,6 +325,18 @@ export default function DashboardPage() {
     [accessToken]
   );
 
+  const submitBookingSearch = (event?: React.FormEvent) => {
+    event?.preventDefault();
+    setBookingPage(1);
+    fetchBookingsList(bookingSearch, 1, bookingSearchDate, bookingSearchEmployee);
+  };
+
+  const changeBookingPage = (page: number) => {
+    if (bookingsLoading || page < 1 || page > bookingTotalPages) return;
+    setBookingPage(page);
+    fetchBookingsList(bookingSearch, page, bookingSearchDate, bookingSearchEmployee);
+  };
+
   const fetchEmployeesList = useCallback(async () => {
     try {
       const res = await getEmployees();
@@ -375,7 +387,7 @@ export default function DashboardPage() {
         fetchAdminsList();
       }
     }
-  }, [user, accessToken, bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee, fetchBookingsList, fetchEmployeesList, fetchEmployeesListFull, fetchAdminsList]);
+  }, [user, accessToken, fetchBookingsList, fetchEmployeesList, fetchEmployeesListFull, fetchAdminsList]);
 
   /* ─────────────────────── Countdown Handlers ─────────────────────── */
   // Cleanup timer on unmount
@@ -1004,18 +1016,15 @@ export default function DashboardPage() {
                     <input
                       type="text"
                       value={bookingSearch}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setBookingSearch(val);
-                        setBookingPage(1);
-                        fetchBookingsList(val, 1, bookingSearchDate, bookingSearchEmployee);
-                      }}
+                      disabled={bookingsLoading}
+                      onChange={(e) => setBookingSearch(e.target.value)}
                       placeholder="เลขโฉนดที่ดิน..."
                       className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
                     />
                     {bookingSearch && (
                       <button
                         type="button"
+                        disabled={bookingsLoading}
                         onClick={() => {
                           setBookingSearch("");
                           setBookingPage(1);
@@ -1039,12 +1048,8 @@ export default function DashboardPage() {
                       <input
                         type="date"
                         value={bookingSearchDate}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setBookingSearchDate(val);
-                          setBookingPage(1);
-                          fetchBookingsList(bookingSearch, 1, val, bookingSearchEmployee);
-                        }}
+                        disabled={bookingsLoading}
+                        onChange={(e) => setBookingSearchDate(e.target.value)}
                         onClick={(e) => {
                           try {
                             (e.target as HTMLInputElement).showPicker?.();
@@ -1056,6 +1061,7 @@ export default function DashboardPage() {
                       {bookingSearchDate && (
                         <button
                           type="button"
+                          disabled={bookingsLoading}
                           onClick={() => {
                             setBookingSearchDate("");
                             setBookingPage(1);
@@ -1077,12 +1083,8 @@ export default function DashboardPage() {
                   <div className="md:col-span-3 relative">
                     <select
                       value={bookingSearchEmployee}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setBookingSearchEmployee(val);
-                        setBookingPage(1);
-                        fetchBookingsList(bookingSearch, 1, bookingSearchDate, val);
-                      }}
+                      disabled={bookingsLoading}
+                      onChange={(e) => setBookingSearchEmployee(e.target.value)}
                       className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
                     >
                       <option value="">— เจ้าหน้าที่ทั้งหมด —</option>
@@ -1094,6 +1096,15 @@ export default function DashboardPage() {
                     </select>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  disabled={bookingsLoading}
+                  onClick={() => submitBookingSearch()}
+                  className="px-4 py-2 bg-[#C59B27] hover:bg-[#A8832A] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  ค้นหา
+                </button>
 
                 {/* Active Filter Indicators / Clear All button */}
                 {(bookingSearch || bookingSearchDate || bookingSearchEmployee) && (
@@ -1115,6 +1126,8 @@ export default function DashboardPage() {
                       </span>
                     )}
                     <button
+                      type="button"
+                      disabled={bookingsLoading}
                       onClick={() => {
                         setBookingSearch("");
                         setBookingSearchDate("");
@@ -1268,15 +1281,15 @@ export default function DashboardPage() {
                   </span>
                   <div className="flex gap-1">
                     <button
-                      disabled={bookingPage <= 1}
-                      onClick={() => setBookingPage((p) => p - 1)}
+                      disabled={bookingsLoading || bookingPage <= 1}
+                      onClick={() => changeBookingPage(bookingPage - 1)}
                       className="px-2.5 py-1 bg-white border border-[#D5C9BE] rounded-lg disabled:opacity-40"
                     >
                       ก่อนหน้า
                     </button>
                     <button
-                      disabled={bookingPage >= bookingTotalPages}
-                      onClick={() => setBookingPage((p) => p + 1)}
+                      disabled={bookingsLoading || bookingPage >= bookingTotalPages}
+                      onClick={() => changeBookingPage(bookingPage + 1)}
                       className="px-2.5 py-1 bg-white border border-[#D5C9BE] rounded-lg disabled:opacity-40"
                     >
                       ถัดไป

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import getBookings, { Booking } from "@/libs/getBookings";
 import { useAuth } from "@/context/AuthContext";
@@ -36,7 +36,6 @@ export default function Home() {
   const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState(false);
 
-  /* fetch data whenever query or page changes */
   const fetchData = useCallback(async (q: string, p: number) => {
     if (!q.trim()) {
       setBookings([]);
@@ -59,12 +58,6 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    if (searched && query) {
-      fetchData(query, page);
-    }
-  }, [page, query, searched, fetchData]);
-
   /* explicit submit - triggers when clicking "ค้นหา", pressing Enter on PC, or "ไป" on phone */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +77,7 @@ export default function Home() {
   const handlePageChange = (p: number) => {
     if (p < 1 || p > totalPages) return;
     setPage(p);
+    fetchData(query, p);
   };
 
   const pageRange = () => {
@@ -182,6 +176,7 @@ export default function Home() {
               type="search"
               enterKeyHint="search"
               value={input}
+              disabled={loading}
               onChange={(e) => setInput(e.target.value)}
               placeholder="ค้นหาโฉนดที่ดิน..."
               className="w-full pl-11 pr-4 py-4 bg-white text-[#2C2520] text-sm outline-none placeholder-[#B0A098] focus:bg-[#FDFAF7] transition-colors"
@@ -190,6 +185,7 @@ export default function Home() {
           <button
             type="submit"
             id="search-submit"
+            disabled={loading}
             className="px-7 py-4 bg-[#C59B27] hover:bg-[#A8832A] text-white font-bold text-sm tracking-wide transition-colors shrink-0"
           >
             ค้นหา
