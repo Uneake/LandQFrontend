@@ -24,3 +24,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Hide native browser password reveal and clear buttons (Edge, IE) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+

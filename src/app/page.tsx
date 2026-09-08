@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 import getBookings, { Booking } from "@/libs/getBookings";
+import { useAuth } from "@/context/AuthContext";
 
 const PAGE_LIMIT = 10;
 
@@ -23,6 +25,7 @@ function formatFee(fee: number) {
 
 /* ─────────────────────── main page ─────────────────────── */
 export default function Home() {
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [input, setInput] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -110,33 +113,61 @@ export default function Home() {
 
       {/* ── Top Header Bar ── */}
       <header className="bg-[#1C3A27] border-b-4 border-[#C59B27] shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#C59B27]/20 border-2 border-[#C59B27] flex items-center justify-center shrink-0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#C59B27">
-              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
-            </svg>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#C59B27]/20 border-2 border-[#C59B27] flex items-center justify-center shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="#C59B27">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-white font-bold text-lg leading-tight tracking-wide">
+                LandQ
+              </h1>
+              <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
+                ระบบตรวจสอบนัดโอนมรดกที่ดิน
+              </p>
+            </div>
           </div>
+
           <div>
-            <h1 className="text-white font-bold text-lg leading-tight tracking-wide">
-              ระบบบริหารจัดการที่ดินและโฉนด
-            </h1>
-            <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
-              LandQ · Official Management System
-            </p>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 bg-[#C59B27] hover:bg-[#A8832A] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <span>แดชบอร์ด ({user.username})</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 bg-[#2D5A3F] hover:bg-[#3E7051] border border-[#C59B27]/40 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C59B27" strokeWidth="2">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                <span>เข้าสู่ระบบเจ้าหน้าที่</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       {/* ── Hero Search Section ── */}
       <section className="bg-gradient-to-b from-[#2D5A3F] to-[#1C3A27] py-14 px-6 text-center">
-        <p className="text-[#C59B27] text-xs font-bold tracking-[0.2em] uppercase mb-2">
-          ระบบสืบค้นข้อมูลอย่างเป็นทางการ
-        </p>
         <h2 className="text-white text-3xl font-bold mb-2 tracking-tight">
-          ค้นหาข้อมูลการจองที่ดิน
+          ค้นหาข้อมูลการโอนมรดกที่ดิน
         </h2>
         <p className="text-[#A8C5B0] text-sm mb-8">
-          กรุณากรอกเลขทะเบียนที่ดินเพื่อตรวจสอบข้อมูลการจอง
+          กรุณากรอกเลขทะเบียนที่ดินเพื่อตรวจสอบข้อมูลการโอนมรดกที่ดิน
         </p>
 
         <form
@@ -355,8 +386,8 @@ export default function Home() {
                     id={`page-${p}`}
                     onClick={() => handlePageChange(p)}
                     className={`w-9 h-9 rounded border text-xs font-bold transition-colors ${p === page
-                        ? "bg-[#1C3A27] border-[#1C3A27] text-white shadow-sm"
-                        : "bg-white border-[#D5C8BC] text-[#4A3E37] hover:bg-[#F0E8DE]"
+                      ? "bg-[#1C3A27] border-[#1C3A27] text-white shadow-sm"
+                      : "bg-white border-[#D5C8BC] text-[#4A3E37] hover:bg-[#F0E8DE]"
                       }`}
                   >
                     {p}
@@ -390,15 +421,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-[#D8CFC4] bg-[#EDE5D8] py-6 text-center mt-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#5C4033]">
-          LandQ · ระบบบริหารจัดการที่ดินและโฉนดอย่างเป็นทางการ
-        </p>
-        <p className="text-xs text-[#9A8C84] mt-1">
-          บริการข้อมูลที่เป็นความลับและได้รับการรักษาความปลอดภัย · สงวนลิขสิทธิ์
-        </p>
-      </footer>
+
     </div>
   );
 }

@@ -4,6 +4,7 @@ const BACKEND_URL =
 export default async function userLogin(userEmail: string, userPass: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/auth/login`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
