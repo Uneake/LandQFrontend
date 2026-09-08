@@ -4,8 +4,8 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./verify-email.module.css";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api/v1";
 
 type VerifyState = "loading" | "success" | "error" | "already-verified";
 
@@ -31,7 +31,7 @@ function VerifyEmailContent() {
     const verifyEmail = async () => {
       try {
         const res = await fetch(
-          `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
+          `${BACKEND_URL}/auth/verify-email?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
         );
         const data = await res.json();
 
