@@ -13,6 +13,7 @@ import getAdmins, { AdminItem } from "@/libs/getAdmins";
 import createAdmin, { CreateAdminData } from "@/libs/createAdmin";
 import deleteAdmin from "@/libs/deleteAdmin";
 import updateAdmin from "@/libs/updateAdmin";
+import logoutAllSessions from "@/libs/logoutAllSessions";
 
 /* ─────────────────────── Toast Alert ─────────────────────── */
 interface Toast {
@@ -98,6 +99,8 @@ export default function DashboardPage() {
     role: "admin",
   });
   const [adminModalLoading, setAdminModalLoading] = useState(false);
+  // Track which admin is currently being force-logged-out
+  const [logoutingAdminId, setLogoutingAdminId] = useState<string | null>(null);
 
   /* ─────────────────────── Profile State ─────────────────────── */
   const [profileUsername, setProfileUsername] = useState("");
@@ -349,6 +352,20 @@ export default function DashboardPage() {
       addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
     } finally {
       setBookingModalLoading(false);
+    }
+  };
+
+  /* ─────────────────────── Force-Logout Handler (super_admin) ─────────────────────── */
+  const handleForceLogoutAll = async (adminId: string, adminUsername: string) => {
+    if (!accessToken) return;
+    setLogoutingAdminId(adminId);
+    try {
+      const result = await logoutAllSessions(accessToken, adminId);
+      addToast("success", result.message || `บังคับออกจากระบบ ${adminUsername} สำเร็จแล้ว`);
+    } catch (err: unknown) {
+      addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการบังคับออกจากระบบ");
+    } finally {
+      setLogoutingAdminId(null);
     }
   };
 
@@ -880,12 +897,24 @@ export default function DashboardPage() {
                                   ไม่สามารถลบตัวเองได้
                                 </span>
                               ) : (
-                                <button
-                                  onClick={() => startCountdown("admin", a._id, a.username)}
-                                  className="px-2.5 py-1 text-xs text-[#C0392B] hover:bg-red-50 border border-red-200 rounded-lg transition font-medium"
-                                >
-                                  ลบแอดมิน
-                                </button>
+                                <div className="flex items-center justify-center gap-2 flex-wrap">
+                                  {/* Force logout all sessions */}
+                                  <button
+                                    onClick={() => handleForceLogoutAll(a._id, a.username)}
+                                    disabled={logoutingAdminId === a._id}
+                                    title="บังคับออกจากระบบทุก session"
+                                    className="px-2.5 py-1 text-xs text-[#7A3020] hover:bg-amber-50 border border-amber-300 rounded-lg transition font-medium disabled:opacity-50 cursor-pointer"
+                                  >
+                                    {logoutingAdminId === a._id ? "กำลังดำเนินการ..." : "บังคับออก"}
+                                  </button>
+                                  {/* Delete admin */}
+                                  <button
+                                    onClick={() => startCountdown("admin", a._id, a.username)}
+                                    className="px-2.5 py-1 text-xs text-[#C0392B] hover:bg-red-50 border border-red-200 rounded-lg transition font-medium cursor-pointer"
+                                  >
+                                    ลบแอดมิน
+                                  </button>
+                                </div>
                               )}
                             </td>
                           </tr>
