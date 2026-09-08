@@ -32,6 +32,16 @@ const THAI_MONTHS: Record<string, number> = {
   "พฤศจิกายน": 10, "พ.ย.": 10, "พ.ย": 10,
   "ธันวาคม": 11, "ธ.ค.": 11, "ธ.ค": 11,
 };
+function formatDate(raw?: string) {
+  if (!raw) return "-";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 function parseAppointmentDate(raw?: string): Date | null {
   if (!raw || typeof raw !== "string") return null;
@@ -1165,7 +1175,7 @@ export default function DashboardPage() {
                           >
                             <td className="py-3.5 px-4 font-medium text-[#1C3A27]">
                               <div className="flex flex-col gap-1">
-                                <span>{b.appointmentDate}</span>
+                                <span>{formatDate(b.appointmentDate)}</span>
                                 {isPast && (
                                   <span
                                     className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${isDismissed
@@ -2222,7 +2232,7 @@ export default function DashboardPage() {
                           <line x1="12" y1="8" x2="12" y2="12" />
                           <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
-                        เลยกำหนดนัด: {b.appointmentDate}
+                        เลยกำหนดนัด: {formatDate(b.appointmentDate)}
                       </span>
                     </div>
                     <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
