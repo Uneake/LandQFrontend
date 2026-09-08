@@ -297,10 +297,14 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bookings.map((b, idx) => (
+                  {bookings.map((b, idx) => {
+                    const employeeDeleted = !b.employee;
+                    return (
                     <tr
                       key={b._id}
-                      className={`border-t border-[#E0D8D0] hover:bg-[#F0E8DE] transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-[#FAF6F1]"
+                      className={`border-t transition-colors ${employeeDeleted
+                        ? "border-red-200 bg-red-50 hover:bg-red-100"
+                        : `border-[#E0D8D0] hover:bg-[#F0E8DE] ${idx % 2 === 0 ? "bg-white" : "bg-[#FAF6F1]"}`
                         }`}
                     >
                       {/* วันที่นัด */}
@@ -337,29 +341,35 @@ export default function Home() {
                       </td>
                       {/* เจ้าหน้าที่ */}
                       <td className="px-4 py-3.5">
-                        {b.employee ? (
+                        {employeeDeleted ? (
+                          <span className="text-red-700 font-bold text-xs">เจ้าหน้าที่ถูกลบ</span>
+                        ) : (
                           <div>
-                            <span className="text-[#2C2520] font-medium">{b.employee.name}</span>
-                            {b.employee.tel && (
+                            <span className="text-[#2C2520] font-medium">{b.employee?.name}</span>
+                            {b.employee?.tel && (
                               <span className="block text-[#7A695B] text-xs mt-0.5">โทร {b.employee.tel}</span>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-[#B0A098] italic text-xs">ไม่ระบุ</span>
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Card List (Visible on mobile screens below md - fits full width without scrolling) */}
             <div className="block md:hidden space-y-3.5">
-              {bookings.map((b) => (
+              {bookings.map((b) => {
+                const employeeDeleted = !b.employee;
+                return (
                 <div
                   key={b._id}
-                  className="bg-white border border-[#D8CFC4] rounded-2xl p-4 shadow-sm space-y-3"
+                  className={`border rounded-2xl p-4 shadow-sm space-y-3 ${employeeDeleted
+                    ? "bg-red-50 border-red-200"
+                    : "bg-white border-[#D8CFC4]"
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2 border-b border-[#EAE0D4] pb-2.5">
                     <div>
@@ -370,7 +380,7 @@ export default function Home() {
                         {b.titleDeedNumber}
                       </span>
                     </div>
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#1C3A27] text-white rounded-lg shrink-0">
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg shrink-0 ${employeeDeleted ? "bg-red-700 text-white" : "bg-[#1C3A27] text-white"}`}>
                       {formatDate(b.appointmentDate)}
                     </span>
                   </div>
@@ -400,14 +410,15 @@ export default function Home() {
                     </div>
                     <div>
                       <span className="text-[#7A695B] block text-[11px]">เจ้าหน้าที่</span>
-                      <span className="text-[#2C2520] font-medium">
-                        {b.employee?.name || "-"}
-                        {b.employee?.tel ? ` (โทร ${b.employee.tel})` : ""}
+                      <span className={employeeDeleted ? "text-red-700 font-bold" : "text-[#2C2520] font-medium"}>
+                        {employeeDeleted ? "เจ้าหน้าที่ถูกลบ" : b.employee?.name}
+                        {!employeeDeleted && b.employee?.tel ? ` (โทร ${b.employee.tel})` : ""}
                       </span>
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* ── Pagination ── */}
