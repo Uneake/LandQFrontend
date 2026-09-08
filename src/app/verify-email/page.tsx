@@ -2,21 +2,21 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import verifyEmail from "@/libs/verifyEmail";
 import styles from "./verify-email.module.css";
 
-const BACKEND_URL =
-  process.env.BACKEND_URL || "http://localhost:5000";
-
 type VerifyState = "loading" | "success" | "error" | "already-verified";
+
+interface UserData {
+  username?: string;
+  email?: string;
+}
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const [state, setState] = useState<VerifyState>("loading");
   const [message, setMessage] = useState("");
-  const [userData, setUserData] = useState<{
-    username?: string;
-    email?: string;
-  } | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -28,14 +28,11 @@ function VerifyEmailContent() {
       return;
     }
 
-    const verifyEmail = async () => {
+    const runVerification = async () => {
       try {
-        const res = await fetch(
-          `${BACKEND_URL}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
-        );
-        const data = await res.json();
+        const data = await verifyEmail(token, id);
 
-        if (res.ok && data.success) {
+        if (data.success) {
           setState("success");
           setMessage(data.message || "Email verified successfully!");
           setUserData(data.data || null);
@@ -47,13 +44,19 @@ function VerifyEmailContent() {
           }
           setMessage(data.message || "Verification failed.");
         }
-      } catch {
-        setState("error");
-        setMessage("Network error. Please check your connection and try again.");
+      } catch (err: unknown) {
+        const errMessage = err instanceof Error ? err.message : "";
+        if (errMessage.includes("already verified")) {
+          setState("already-verified");
+          setMessage(errMessage);
+        } else {
+          setState("error");
+          setMessage(errMessage || "Verification failed. Please check your connection and try again.");
+        }
       }
     };
 
-    verifyEmail();
+    runVerification();
   }, [searchParams]);
 
   return (
@@ -67,12 +70,12 @@ function VerifyEmailContent() {
         {/* Icon */}
         <div
           className={`${styles.iconWrapper} ${state === "loading"
-              ? styles.iconLoading
-              : state === "success"
-                ? styles.iconSuccess
-                : state === "already-verified"
-                  ? styles.iconAlready
-                  : styles.iconError
+            ? styles.iconLoading
+            : state === "success"
+              ? styles.iconSuccess
+              : state === "already-verified"
+                ? styles.iconAlready
+                : styles.iconError
             }`}
         >
           {state === "loading" && (
