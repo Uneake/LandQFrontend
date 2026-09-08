@@ -31,16 +31,20 @@ export interface BookingsResponse {
 
 export default async function getBookings(params: {
   search?: string;
-  page?  : number;
-  limit? : number;
-  all?   : boolean;
-  token? : string;
+  appointmentDate?: string;
+  employee?: string;
+  page?: number;
+  limit?: number;
+  all?: boolean;
+  token?: string;
 }): Promise<BookingsResponse> {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
-  if (params.page)   query.set("page",   String(params.page));
-  if (params.limit)  query.set("limit",  String(params.limit));
-  if (params.all)    query.set("all",    "true");
+  if (params.appointmentDate) query.set("appointmentDate", params.appointmentDate);
+  if (params.employee) query.set("employee", params.employee);
+  if (params.page) query.set("page", String(params.page));
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.all) query.set("all", "true");
 
   const headers: HeadersInit = params.token
     ? { Authorization: `Bearer ${params.token}` }

@@ -14,6 +14,93 @@ import createAdmin, { CreateAdminData } from "@/libs/createAdmin";
 import deleteAdmin from "@/libs/deleteAdmin";
 import updateAdmin from "@/libs/updateAdmin";
 import logoutAllSessions from "@/libs/logoutAllSessions";
+import createEmployee, { CreateEmployeeData } from "@/libs/createEmployee";
+import updateEmployee, { UpdateEmployeeData } from "@/libs/updateEmployee";
+import deleteEmployee from "@/libs/deleteEmployee";
+/* ─────────────────────── Thai Date Parser & Overdue Helper ─────────────────────── */
+const THAI_MONTHS: Record<string, number> = {
+  "มกราคม": 0, "ม.ค.": 0, "ม.ค": 0,
+  "กุมภาพันธ์": 1, "ก.พ.": 1, "ก.พ": 1,
+  "มีนาคม": 2, "มี.ค.": 2, "มี.ค": 2,
+  "เมษายน": 3, "เม.ย.": 3, "เม.ย": 3,
+  "พฤษภาคม": 4, "พ.ค.": 4, "พ.ค": 4,
+  "มิถุนายน": 5, "มิ.ย.": 5, "มิ.ย": 5,
+  "กรกฎาคม": 6, "ก.ค.": 6, "ก.ค": 6,
+  "สิงหาคม": 7, "ส.ค.": 7, "ส.ค": 7,
+  "กันยายน": 8, "ก.ย.": 8, "ก.ย": 8,
+  "ตุลาคม": 9, "ต.ค.": 9, "ต.ค": 9,
+  "พฤศจิกายน": 10, "พ.ย.": 10, "พ.ย": 10,
+  "ธันวาคม": 11, "ธ.ค.": 11, "ธ.ค": 11,
+};
+
+function parseAppointmentDate(raw?: string): Date | null {
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+
+  // 1. Try standard Date parsing (ISO e.g. 2026-09-01)
+  const d = new Date(trimmed);
+  if (!isNaN(d.getTime())) {
+    if (d.getFullYear() > 2400) {
+      d.setFullYear(d.getFullYear() - 543);
+    }
+    return d;
+  }
+
+  // 2. Try DD/MM/YYYY or DD-MM-YYYY
+  const slashParts = trimmed.split(/[/.-]/);
+  if (slashParts.length === 3) {
+    const day = parseInt(slashParts[0], 10);
+    const month = parseInt(slashParts[1], 10) - 1;
+    let year = parseInt(slashParts[2], 10);
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      if (year > 2400) year -= 543;
+      const parsed = new Date(year, month, day);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+  }
+
+  // 3. Try Thai date string like "15 มีนาคม 2567" or "15 มี.ค. 2567"
+  const tokens = trimmed.split(/\s+/);
+  if (tokens.length >= 3) {
+    const day = parseInt(tokens[0], 10);
+    const monthName = tokens[1];
+    let year = parseInt(tokens[2], 10);
+    const month = THAI_MONTHS[monthName];
+    if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+      if (year > 2400) year -= 543;
+      const parsed = new Date(year, month, day);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+  }
+
+  return null;
+}
+
+function isPastAppointmentDate(raw?: string): boolean {
+  const parsed = parseAppointmentDate(raw);
+  if (!parsed) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  parsed.setHours(23, 59, 59, 999);
+  return parsed.getTime() < today.getTime();
+}
+
+function toISODate(raw?: string): string {
+  const d = parseAppointmentDate(raw);
+  if (!d) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayISODate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 /* ─────────────────────── Toast Alert ─────────────────────── */
 interface Toast {
@@ -26,8 +113,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, accessToken, isLoading: authLoading, logout, refreshUser } = useAuth();
 
-  // Active navigation tab: 'overview' | 'bookings' | 'admins' | 'profile'
-  const [activeTab, setActiveTab] = useState<"overview" | "bookings" | "admins" | "profile">("bookings");
+  // Active navigation tab: 'bookings' | 'employees' | 'admins' | 'profile'
+  const [activeTab, setActiveTab] = useState<"bookings" | "employees" | "admins" | "profile">("bookings");
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = (type: "success" | "error" | "info", message: string) => {
@@ -49,6 +136,8 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingSearch, setBookingSearch] = useState("");
+  const [bookingSearchDate, setBookingSearchDate] = useState("");
+  const [bookingSearchEmployee, setBookingSearchEmployee] = useState("");
   const [bookingPage, setBookingPage] = useState(1);
   const [bookingTotalPages, setBookingTotalPages] = useState(1);
   const [bookingTotal, setBookingTotal] = useState(0);
@@ -71,10 +160,10 @@ export default function DashboardPage() {
   });
   const [bookingModalLoading, setBookingModalLoading] = useState(false);
 
-  /* ─── Delete Countdown State (generic for booking / admin / account) ─── */
+  /* ─── Delete Countdown State (generic for booking / admin / employee / account) ─── */
   interface CountdownState {
     active: boolean;
-    type: "booking" | "admin" | "account";
+    type: "booking" | "admin" | "employee" | "account";
     targetId?: string;
     targetName?: string;
     secondsLeft: number;
@@ -102,6 +191,19 @@ export default function DashboardPage() {
   // Track which admin is currently being force-logged-out
   const [logoutingAdminId, setLogoutingAdminId] = useState<string | null>(null);
 
+  /* ─────────────────────── Employees State ─────────────────────── */
+  interface EmployeeItem { _id: string; name: string; tel?: string; }
+  const [employeesList, setEmployeesList] = useState<EmployeeItem[]>([]);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
+  const [isEmployeeModalOpen, setIsEmployeeModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeItem | null>(null);
+  const [employeeForm, setEmployeeForm] = useState<CreateEmployeeData>({ name: "", tel: "" });
+  const [employeeModalLoading, setEmployeeModalLoading] = useState(false);
+  // Inline "add employee" sub-form inside booking modal
+  const [showInlineEmpForm, setShowInlineEmpForm] = useState(false);
+  const [inlineEmpForm, setInlineEmpForm] = useState({ name: "", tel: "" });
+  const [inlineEmpLoading, setInlineEmpLoading] = useState(false);
+
   /* ─────────────────────── Profile State ─────────────────────── */
   const [profileUsername, setProfileUsername] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
@@ -111,6 +213,72 @@ export default function DashboardPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState({
+    newPassword: "",
+    confirmPassword: "",
+    general: "",
+  });
+
+  // Overdue / Past Appointment Date State
+  const [dismissedOverdueIds, setDismissedOverdueIds] = useState<string[]>([]);
+  const [isOverdueModalOpen, setIsOverdueModalOpen] = useState(false);
+  const [hasAutoOpenedOverdue, setHasAutoOpenedOverdue] = useState(false);
+
+  // Load dismissed overdue IDs from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("landq_dismissed_overdue");
+      if (stored) {
+        setDismissedOverdueIds(JSON.parse(stored));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const overdueBookings = bookings.filter((b) => isPastAppointmentDate(b.appointmentDate));
+  const undismissedOverdueList = overdueBookings.filter((b) => !dismissedOverdueIds.includes(b._id));
+
+  // Automatically open overdue modal on initial load when overdue bookings are detected
+  useEffect(() => {
+    if (!hasAutoOpenedOverdue && undismissedOverdueList.length > 0 && !bookingsLoading) {
+      setIsOverdueModalOpen(true);
+      setHasAutoOpenedOverdue(true);
+    }
+  }, [hasAutoOpenedOverdue, undismissedOverdueList.length, bookingsLoading]);
+
+  const dismissOverdue = (id: string) => {
+    setDismissedOverdueIds((prev) => {
+      const updated = Array.from(new Set([...prev, id]));
+      try {
+        localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("info", "ละเว้นการแจ้งเตือนรายการนี้แล้ว");
+  };
+
+  const dismissAllOverdue = (ids: string[]) => {
+    setDismissedOverdueIds((prev) => {
+      const updated = Array.from(new Set([...prev, ...ids]));
+      try {
+        localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("info", "ละเว้นการแจ้งเตือนทั้งหมดแล้ว");
+  };
+
+  const unDismissOverdue = (id: string) => {
+    setDismissedOverdueIds((prev) => {
+      const updated = prev.filter((item) => item !== id);
+      try {
+        localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    addToast("info", "ยกเลิกการละเว้นรายการนี้แล้ว");
+  };
 
   /* Sync profile form when user loads */
   useEffect(() => {
@@ -122,11 +290,13 @@ export default function DashboardPage() {
 
   /* ─────────────────────── Fetching Data ─────────────────────── */
   const fetchBookingsList = useCallback(
-    async (q: string, p: number) => {
+    async (q: string, p: number, dateFilter?: string, empFilter?: string) => {
       setBookingsLoading(true);
       try {
         const res = await getBookings({
           search: q,
+          appointmentDate: dateFilter,
+          employee: empFilter,
           page: p,
           limit: 10,
           all: true,
@@ -170,15 +340,31 @@ export default function DashboardPage() {
     }
   }, [accessToken, user?.role]);
 
+  const fetchEmployeesListFull = useCallback(async () => {
+    if (!accessToken) return;
+    setEmployeesLoading(true);
+    try {
+      const res = await getEmployees();
+      if (res.success && res.data) {
+        setEmployeesList(res.data);
+      }
+    } catch (err: unknown) {
+      addToast("error", err instanceof Error ? err.message : "ไม่สามารถโหลดรายชื่อเจ้าหน้าที่ได้");
+    } finally {
+      setEmployeesLoading(false);
+    }
+  }, [accessToken]);
+
   useEffect(() => {
     if (user && accessToken) {
-      fetchBookingsList(bookingSearch, bookingPage);
+      fetchBookingsList(bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee);
       fetchEmployeesList();
+      fetchEmployeesListFull();
       if (user.role === "super_admin") {
         fetchAdminsList();
       }
     }
-  }, [user, accessToken, bookingSearch, bookingPage, fetchBookingsList, fetchEmployeesList, fetchAdminsList]);
+  }, [user, accessToken, bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee, fetchBookingsList, fetchEmployeesList, fetchEmployeesListFull, fetchAdminsList]);
 
   /* ─────────────────────── Countdown Handlers ─────────────────────── */
   // Cleanup timer on unmount
@@ -189,7 +375,7 @@ export default function DashboardPage() {
   }, [countdown.timerRef]);
 
   const startCountdown = (
-    type: "booking" | "admin" | "account",
+    type: "booking" | "admin" | "employee" | "account",
     targetId?: string,
     targetName?: string
   ) => {
@@ -229,7 +415,7 @@ export default function DashboardPage() {
       try {
         await deleteBooking(accessToken, targetId);
         addToast("success", "ลบรายการนัดหมายสำเร็จแล้ว");
-        fetchBookingsList(bookingSearch, bookingPage);
+        fetchBookingsList(bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee);
       } catch (err: unknown) {
         addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบ");
       }
@@ -241,6 +427,15 @@ export default function DashboardPage() {
       } catch (err: unknown) {
         addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบแอดมิน");
       }
+    } else if (type === "employee" && targetId) {
+      try {
+        await deleteEmployee(accessToken, targetId);
+        addToast("success", "ลบข้อมูลเจ้าหน้าที่สำเร็จแล้ว");
+        fetchEmployeesListFull();
+        fetchEmployeesList(); // refresh booking dropdown too
+      } catch (err: unknown) {
+        addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบเจ้าหน้าที่");
+      }
     } else if (type === "account" && user) {
       try {
         await deleteAdmin(accessToken, user.id);
@@ -251,7 +446,7 @@ export default function DashboardPage() {
         addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการลบบัญชี");
       }
     }
-  }, [countdown, accessToken, user, bookingSearch, bookingPage, fetchBookingsList, fetchAdminsList, logout, router]);
+  }, [countdown, accessToken, user, bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee, fetchBookingsList, fetchAdminsList, fetchEmployeesListFull, fetchEmployeesList, logout, router]);
 
   // Handle countdown tick
   const triggerCountdownTimer = () => {
@@ -271,9 +466,11 @@ export default function DashboardPage() {
 
   /* ─────────────────────── Booking Modal Actions ─────────────────────── */
   const openCreateBookingModal = () => {
+    setShowInlineEmpForm(false);
+    setInlineEmpForm({ name: "", tel: "" });
     setEditingBooking(null);
     setBookingForm({
-      appointmentDate: "",
+      appointmentDate: getTodayISODate(),
       titleDeedNumber: "",
       subDistrict: "",
       heir: "",
@@ -286,6 +483,8 @@ export default function DashboardPage() {
   };
 
   const openEditBookingModal = (b: Booking) => {
+    setShowInlineEmpForm(false);
+    setInlineEmpForm({ name: "", tel: "" });
     setEditingBooking(b);
     // Find matching employee ID if available
     let empId = "";
@@ -294,7 +493,7 @@ export default function DashboardPage() {
       empId = match?._id || employees[0]?._id || "";
     }
     setBookingForm({
-      appointmentDate: b.appointmentDate || "",
+      appointmentDate: toISODate(b.appointmentDate) || b.appointmentDate || "",
       titleDeedNumber: b.titleDeedNumber || "",
       subDistrict: b.subDistrict || "",
       heir: b.heir || "",
@@ -312,6 +511,15 @@ export default function DashboardPage() {
 
     if (!bookingForm.employee) {
       addToast("error", "กรุณาเลือกเจ้าหน้าที่ผู้รับผิดชอบ");
+      return;
+    }
+
+    // Validate that appointment date is not in the past
+    const selectedDate = parseAppointmentDate(bookingForm.appointmentDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!selectedDate || selectedDate.getTime() < today.getTime()) {
+      addToast("error", "ไม่สามารถเลือกวันที่นัดหมายที่ผ่านมาแล้วได้ กรุณาเลือกตั้งแต่วันนี้เป็นต้นไป");
       return;
     }
 
@@ -347,11 +555,87 @@ export default function DashboardPage() {
         addToast("success", "เพิ่มรายการนัดหมายใหม่สำเร็จแล้ว");
       }
       setIsBookingModalOpen(false);
-      fetchBookingsList(bookingSearch, bookingPage);
+      fetchBookingsList(bookingSearch, bookingPage, bookingSearchDate, bookingSearchEmployee);
     } catch (err: unknown) {
       addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
     } finally {
       setBookingModalLoading(false);
+    }
+  };
+
+  /* ─────────────────────── Employee Modal Actions ─────────────────────── */
+  const openCreateEmployeeModal = () => {
+    setEditingEmployee(null);
+    setEmployeeForm({ name: "", tel: "" });
+    setIsEmployeeModalOpen(true);
+  };
+
+  const openEditEmployeeModal = (emp: EmployeeItem) => {
+    setEditingEmployee(emp);
+    setEmployeeForm({ name: emp.name, tel: emp.tel || "" });
+    setIsEmployeeModalOpen(true);
+  };
+
+  const handleEmployeeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessToken) return;
+    const trimmed = employeeForm.name.trim();
+    if (!trimmed) {
+      addToast("error", "กรุณากรอกชื่อเจ้าหน้าที่");
+      return;
+    }
+    setEmployeeModalLoading(true);
+    try {
+      if (editingEmployee) {
+        const upd: UpdateEmployeeData = { name: trimmed };
+        if (employeeForm.tel !== undefined) upd.tel = employeeForm.tel;
+        await updateEmployee(accessToken, editingEmployee._id, upd);
+        addToast("success", "แก้ไขข้อมูลเจ้าหน้าที่สำเร็จแล้ว");
+      } else {
+        const crt: CreateEmployeeData = { name: trimmed };
+        if (employeeForm.tel) crt.tel = employeeForm.tel;
+        await createEmployee(accessToken, crt);
+        addToast("success", "เพิ่มเจ้าหน้าที่ใหม่สำเร็จแล้ว");
+      }
+      setIsEmployeeModalOpen(false);
+      fetchEmployeesListFull();
+      fetchEmployeesList();
+    } catch (err: unknown) {
+      addToast("error", err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
+    } finally {
+      setEmployeeModalLoading(false);
+    }
+  };
+
+  /* ─────────────────────── Inline Add-Employee (inside Booking modal) ─────────────────────── */
+  const handleInlineAddEmployee = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!accessToken) return;
+    const trimmed = inlineEmpForm.name.trim();
+    if (!trimmed) {
+      addToast("error", "กรุณากรอกชื่อเจ้าหน้าที่");
+      return;
+    }
+    setInlineEmpLoading(true);
+    try {
+      const payload: CreateEmployeeData = { name: trimmed };
+      if (inlineEmpForm.tel.trim()) payload.tel = inlineEmpForm.tel.trim();
+      const result = await createEmployee(accessToken, payload);
+      // Refresh dropdowns
+      await fetchEmployeesList();
+      await fetchEmployeesListFull();
+      // Auto-select the newly created employee in the booking form
+      const newId: string = result?.data?._id ?? "";
+      if (newId) {
+        setBookingForm((prev) => ({ ...prev, employee: newId }));
+      }
+      setShowInlineEmpForm(false);
+      setInlineEmpForm({ name: "", tel: "" });
+      addToast("success", `เพิ่มเจ้าหน้าที่ “${trimmed}” เรียบร้อยแล้ว`);
+    } catch (err: unknown) {
+      addToast("error", err instanceof Error ? err.message : "ไม่สามารถเพิ่มเจ้าหน้าที่ได้");
+    } finally {
+      setInlineEmpLoading(false);
     }
   };
 
@@ -417,12 +701,22 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!accessToken || !user) return;
 
+    setPasswordError({ newPassword: "", confirmPassword: "", general: "" });
+
     if (newPassword.length < 8) {
-      addToast("error", "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร");
+      setPasswordError({
+        newPassword: "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร",
+        confirmPassword: "",
+        general: "",
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
-      addToast("error", "รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน");
+      setPasswordError({
+        newPassword: "",
+        confirmPassword: "รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน",
+        general: "",
+      });
       return;
     }
 
@@ -434,8 +728,13 @@ export default function DashboardPage() {
       addToast("success", "เปลี่ยนรหัสผ่านสำเร็จแล้ว");
       setNewPassword("");
       setConfirmPassword("");
+      setPasswordError({ newPassword: "", confirmPassword: "", general: "" });
     } catch (err: unknown) {
-      addToast("error", err instanceof Error ? err.message : "ไม่สามารถเปลี่ยนรหัสผ่านได้");
+      setPasswordError({
+        newPassword: "",
+        confirmPassword: "",
+        general: err instanceof Error ? err.message : "ไม่สามารถเปลี่ยนรหัสผ่านได้",
+      });
     } finally {
       setPasswordLoading(false);
     }
@@ -576,6 +875,23 @@ export default function DashboardPage() {
               <span>จัดการการนัดหมาย</span>
             </button>
 
+            {/* Employees tab — available to all admins */}
+            <button
+              onClick={() => setActiveTab("employees")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition text-left cursor-pointer ${activeTab === "employees"
+                ? "bg-[#1C3A27] text-white shadow-sm"
+                : "text-[#4A3E37] hover:bg-[#EAE0D4]/60"
+                }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="23" y1="11" x2="17" y2="11" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+              </svg>
+              <span>จัดการเจ้าหน้าที่</span>
+            </button>
+
             {user.role === "super_admin" && (
               <button
                 onClick={() => setActiveTab("admins")}
@@ -635,57 +951,172 @@ export default function DashboardPage() {
                     ค้นหา เพิ่ม แก้ไข และลบข้อมูลการจองคิวการถ่ายโอนมรดกที่ดิน
                   </p>
                 </div>
-                <button
-                  onClick={openCreateBookingModal}
-                  className="px-4 py-2.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  <span>เพิ่มรายการนัดหมาย</span>
-                </button>
-              </div>
-
-              {/* Search input */}
-              <div className="mb-6 flex gap-3">
-                <div className="relative flex-1">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A695B] pointer-events-none">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    value={bookingSearch}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setBookingSearch(val);
-                      setBookingPage(1);
-                      fetchBookingsList(val, 1);
-                    }}
-                    placeholder="ค้นหาโฉนดที่ดิน, ตำบล, ทายาท, หรือผู้นัดหมาย..."
-                    className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
-                  />
-                  {bookingSearch && (
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {undismissedOverdueList.length > 0 && (
                     <button
-                      type="button"
-                      onClick={() => {
-                        setBookingSearch("");
-                        setBookingPage(1);
-                        fetchBookingsList("", 1);
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A695B] hover:text-[#2C2520] p-1 rounded-full text-xs"
-                      title="ล้างคำค้นหา"
+                      onClick={() => setIsOverdueModalOpen(true)}
+                      className="px-3.5 py-2.5 bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-xs shrink-0 cursor-pointer animate-pulse"
+                      title="คลิกเพื่อดูและจัดการรายการที่เลยกำหนดนัดหมาย"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
                       </svg>
+                      <span>เลยกำหนดนัด ({undismissedOverdueList.length})</span>
                     </button>
                   )}
+                  <button
+                    onClick={openCreateBookingModal}
+                    className="px-4 py-2.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>เพิ่มรายการนัดหมาย</span>
+                  </button>
                 </div>
+              </div>
+
+              {/* Search & Filter Bar */}
+              <div className="mb-6 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                  {/* 1. General Search Input */}
+                  <div className="md:col-span-6 relative">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7A695B] pointer-events-none">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={bookingSearch}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setBookingSearch(val);
+                        setBookingPage(1);
+                        fetchBookingsList(val, 1, bookingSearchDate, bookingSearchEmployee);
+                      }}
+                      placeholder="ค้นหาโฉนดที่ดิน, ตำบล, ทายาท, ผู้นัดหมาย..."
+                      className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
+                    />
+                    {bookingSearch && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBookingSearch("");
+                          setBookingPage(1);
+                          fetchBookingsList("", 1, bookingSearchDate, bookingSearchEmployee);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A695B] hover:text-[#2C2520] p-1 rounded-full text-xs cursor-pointer"
+                        title="ล้างคำค้นหา"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 2. Filter by Appointment Date */}
+                  <div className="md:col-span-3 relative">
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-white border border-[#D5C9BE] rounded-xl focus-within:border-[#C59B27] h-full">
+                      <span className="text-[11px] text-[#7A695B] shrink-0 font-medium">วันนัด:</span>
+                      <input
+                        type="date"
+                        value={bookingSearchDate}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setBookingSearchDate(val);
+                          setBookingPage(1);
+                          fetchBookingsList(bookingSearch, 1, val, bookingSearchEmployee);
+                        }}
+                        onClick={(e) => {
+                          try {
+                            (e.target as HTMLInputElement).showPicker?.();
+                          } catch {}
+                        }}
+                        className="w-full py-1 text-xs text-[#2C2520] outline-none bg-transparent cursor-pointer"
+                        title="ค้นหาตามวันที่นัดหมาย"
+                      />
+                      {bookingSearchDate && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingSearchDate("");
+                            setBookingPage(1);
+                            fetchBookingsList(bookingSearch, 1, "", bookingSearchEmployee);
+                          }}
+                          className="text-[#7A695B] hover:text-[#2C2520] p-0.5 rounded-full text-xs cursor-pointer shrink-0"
+                          title="ล้างวันที่นัดหมาย"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 3. Filter by Employee */}
+                  <div className="md:col-span-3 relative">
+                    <select
+                      value={bookingSearchEmployee}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setBookingSearchEmployee(val);
+                        setBookingPage(1);
+                        fetchBookingsList(bookingSearch, 1, bookingSearchDate, val);
+                      }}
+                      className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
+                    >
+                      <option value="">— เจ้าหน้าที่ทั้งหมด —</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Active Filter Indicators / Clear All button */}
+                {(bookingSearch || bookingSearchDate || bookingSearchEmployee) && (
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-[#7A695B]">
+                    <span className="font-semibold">ตัวกรอง:</span>
+                    {bookingSearch && (
+                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                        คำค้นหา: &quot;{bookingSearch}&quot;
+                      </span>
+                    )}
+                    {bookingSearchDate && (
+                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                        วันที่นัด: {bookingSearchDate}
+                      </span>
+                    )}
+                    {bookingSearchEmployee && (
+                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                        เจ้าหน้าที่: {employees.find((e) => e._id === bookingSearchEmployee)?.name || bookingSearchEmployee}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => {
+                        setBookingSearch("");
+                        setBookingSearchDate("");
+                        setBookingSearchEmployee("");
+                        setBookingPage(1);
+                        fetchBookingsList("", 1, "", "");
+                      }}
+                      className="text-[#C0392B] hover:underline font-bold ml-1 cursor-pointer text-xs"
+                    >
+                      ล้างตัวกรองทั้งหมด
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Bookings Table */}
@@ -718,49 +1149,104 @@ export default function DashboardPage() {
                         </td>
                       </tr>
                     ) : (
-                      bookings.map((b) => (
-                        <tr key={b._id} className="hover:bg-[#FDFAF7] transition">
-                          <td className="py-3.5 px-4 font-medium text-[#1C3A27]">
-                            {b.appointmentDate}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-[#2C2520]">
-                            {b.titleDeedNumber}
-                          </td>
-                          <td className="py-3.5 px-4 text-[#4A3E37]">{b.subDistrict}</td>
-                          <td className="py-3.5 px-4 text-[#4A3E37]">{b.heir}</td>
-                          <td className="py-3.5 px-4 text-[#4A3E37]">{b.appointedBy}</td>
-                          <td className="py-3.5 px-4 font-bold text-[#C59B27]">
-                            {b.fee?.toLocaleString("th-TH")} บาท
-                          </td>
-                          <td className="py-3.5 px-4 text-[#4A3E37]">
-                            {b.employee?.name || "-"}
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => openEditBookingModal(b)}
-                                className="p-1.5 text-[#1C3A27] hover:bg-[#EAE0D4] rounded-lg transition"
-                                title="แก้ไข"
-                              >
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => startCountdown("booking", b._id, b.titleDeedNumber)}
-                                className="p-1.5 text-[#C0392B] hover:bg-red-50 rounded-lg transition"
-                                title="ลบ"
-                              >
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                      bookings.map((b) => {
+                        const isPast = isPastAppointmentDate(b.appointmentDate);
+                        const isDismissed = dismissedOverdueIds.includes(b._id);
+
+                        return (
+                          <tr
+                            key={b._id}
+                            className={`transition ${
+                              isPast
+                                ? isDismissed
+                                  ? "bg-stone-50/70 hover:bg-stone-100/70 border-l-4 border-l-stone-300"
+                                  : "bg-red-50/40 hover:bg-red-50/70 border-l-4 border-l-red-500"
+                                : "hover:bg-[#FDFAF7]"
+                            }`}
+                          >
+                            <td className="py-3.5 px-4 font-medium text-[#1C3A27]">
+                              <div className="flex flex-col gap-1">
+                                <span>{b.appointmentDate}</span>
+                                {isPast && (
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${
+                                      isDismissed
+                                        ? "bg-stone-200 text-stone-600 border border-stone-300"
+                                        : "bg-red-100 text-red-700 border border-red-200"
+                                    }`}
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                      <line x1="12" y1="9" x2="12" y2="13" />
+                                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                    {isDismissed ? "เลยกำหนด (ละเว้นแล้ว)" : "เลยกำหนดวันนัด"}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 font-bold text-[#2C2520]">
+                              {b.titleDeedNumber}
+                            </td>
+                            <td className="py-3.5 px-4 text-[#4A3E37]">{b.subDistrict}</td>
+                            <td className="py-3.5 px-4 text-[#4A3E37]">{b.heir}</td>
+                            <td className="py-3.5 px-4 text-[#4A3E37]">{b.appointedBy}</td>
+                            <td className="py-3.5 px-4 font-bold text-[#C59B27]">
+                              {b.fee?.toLocaleString("th-TH")} บาท
+                            </td>
+                            <td className="py-3.5 px-4 text-[#4A3E37]">
+                              {b.employee?.name || "-"}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => openEditBookingModal(b)}
+                                  className="p-1.5 text-[#1C3A27] hover:bg-[#EAE0D4] rounded-lg transition cursor-pointer"
+                                  title="แก้ไข"
+                                >
+                                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => startCountdown("booking", b._id, b.titleDeedNumber)}
+                                  className="p-1.5 text-[#C0392B] hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                  title="ลบ"
+                                >
+                                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                  </svg>
+                                </button>
+                                {isPast && (
+                                  <button
+                                    onClick={() => isDismissed ? unDismissOverdue(b._id) : dismissOverdue(b._id)}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer ${
+                                      isDismissed
+                                        ? "text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                                        : "text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                                    }`}
+                                    title={isDismissed ? "ยกเลิกการละเว้น (Un-dismiss)" : "ละเว้นการแจ้งเตือน (Dismiss)"}
+                                  >
+                                    {isDismissed ? (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                      </svg>
+                                    ) : (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -927,7 +1413,110 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ═════════════════ TAB 3: PROFILE & SETTINGS ═════════════════ */}
+          {/* ═════════════════ TAB: EMPLOYEES ═════════════════ */}
+          {activeTab === "employees" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-[#1C3A27]">จัดการเจ้าหน้าที่</h2>
+                  <p className="text-xs text-[#7A695B] mt-0.5">เพิ่ม แก้ไข หรือลบข้อมูลเจ้าหน้าที่ผู้รับผิดชอบการนัดหมาย</p>
+                </div>
+                <button
+                  onClick={openCreateEmployeeModal}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer shrink-0"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  <span>เพิ่มเจ้าหน้าที่</span>
+                </button>
+              </div>
+
+              {/* Employees table */}
+              <div className="overflow-x-auto border border-[#EAE0D4] rounded-xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#EAE0D4]/70 text-[#4A3E37] font-bold border-b border-[#EAE0D4]">
+                    <tr>
+                      <th className="py-3 px-4">#</th>
+                      <th className="py-3 px-4">ชื่อเจ้าหน้าที่</th>
+                      <th className="py-3 px-4">เบอร์โทรศัพท์</th>
+                      <th className="py-3 px-4 text-center">การจัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#EAE0D4]/60 bg-white">
+                    {employeesLoading ? (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-[#7A695B]">
+                          <div className="inline-block w-6 h-6 border-2 border-[#C59B27] border-t-transparent rounded-full animate-spin mb-2" />
+                          <div>กำลังโหลดข้อมูลเจ้าหน้าที่...</div>
+                        </td>
+                      </tr>
+                    ) : employeesList.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-8 text-center text-[#7A695B]">ยังไม่มีข้อมูลเจ้าหน้าที่</td>
+                      </tr>
+                    ) : (
+                      employeesList.map((emp, idx) => (
+                        <tr key={emp._id} className="hover:bg-[#FDFAF7] transition">
+                          <td className="py-3.5 px-4 text-[#7A695B]">{idx + 1}</td>
+                          <td className="py-3.5 px-4 font-bold text-[#1C3A27]">{emp.name}</td>
+                          <td className="py-3.5 px-4 text-[#4A3E37]">{emp.tel || <span className="text-[#A8832A] italic">ไม่ระบุ</span>}</td>
+                          <td className="py-3.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => openEditEmployeeModal(emp)}
+                                className="px-2.5 py-1 text-xs text-[#1C3A27] hover:bg-[#EAE0D4] border border-[#C59B27]/50 rounded-lg transition font-medium cursor-pointer"
+                              >
+                                แก้ไข
+                              </button>
+                              <button
+                                onClick={() => startCountdown("employee", emp._id, emp.name)}
+                                className="px-2.5 py-1 text-xs text-[#C0392B] hover:bg-red-50 border border-red-200 rounded-lg transition font-medium cursor-pointer"
+                              >
+                                ลบ
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-3">
+                {employeesList.map((emp, idx) => (
+                  <div key={emp._id} className="bg-white border border-[#EAE0D4] rounded-xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[10px] text-[#7A695B] mb-0.5">#{idx + 1}</div>
+                        <div className="font-bold text-sm text-[#1C3A27]">{emp.name}</div>
+                        <div className="text-xs text-[#4A3E37] mt-1">{emp.tel || <span className="text-[#A8832A] italic">ไม่ระบุเบอร์โทร</span>}</div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <button
+                          onClick={() => openEditEmployeeModal(emp)}
+                          className="px-3 py-1 text-xs text-[#1C3A27] bg-[#F5EFE6] border border-[#C59B27]/40 rounded-lg font-medium cursor-pointer"
+                        >
+                          แก้ไข
+                        </button>
+                        <button
+                          onClick={() => startCountdown("employee", emp._id, emp.name)}
+                          className="px-3 py-1 text-xs text-[#C0392B] bg-red-50 border border-red-200 rounded-lg font-medium cursor-pointer"
+                        >
+                          ลบ
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ═════════════════ TAB: PROFILE & SETTINGS ═════════════════ */}
           {activeTab === "profile" && (
             <div className="space-y-6">
               {/* Profile Card */}
@@ -999,10 +1588,27 @@ export default function DashboardPage() {
                       required
                       minLength={8}
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setPasswordError((prev) => ({ ...prev, newPassword: "", general: "" }));
+                      }}
                       placeholder="อย่างน้อย 8 ตัวอักษร"
-                      className="w-full px-4 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${
+                        passwordError.newPassword
+                          ? "border-red-500 focus:border-red-600 bg-red-50/40"
+                          : "border-[#D5C9BE] focus:border-[#C59B27]"
+                      }`}
                     />
+                    {passwordError.newPassword && (
+                      <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span>{passwordError.newPassword}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -1014,11 +1620,39 @@ export default function DashboardPage() {
                       required
                       minLength={8}
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError((prev) => ({ ...prev, confirmPassword: "", general: "" }));
+                      }}
                       placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง"
-                      className="w-full px-4 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                      className={`w-full px-4 py-2.5 bg-white border rounded-xl text-xs text-[#2C2520] outline-none transition ${
+                        passwordError.confirmPassword
+                          ? "border-red-500 focus:border-red-600 bg-red-50/40"
+                          : "border-[#D5C9BE] focus:border-[#C59B27]"
+                      }`}
                     />
+                    {passwordError.confirmPassword && (
+                      <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span>{passwordError.confirmPassword}</span>
+                      </p>
+                    )}
                   </div>
+
+                  {passwordError.general && (
+                    <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-xs text-red-700 flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      <span>{passwordError.general}</span>
+                    </div>
+                  )}
 
                   <button
                     type="submit"
@@ -1129,7 +1763,10 @@ export default function DashboardPage() {
                 {editingBooking ? "แก้ไขรายการนัดหมาย" : "เพิ่มรายการนัดหมายใหม่"}
               </h3>
               <button
-                onClick={() => setIsBookingModalOpen(false)}
+                onClick={() => {
+                  setIsBookingModalOpen(false);
+                  setShowInlineEmpForm(false);
+                }}
                 className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1146,13 +1783,21 @@ export default function DashboardPage() {
                     วันที่นัดหมาย (Appointment Date) *
                   </label>
                   <input
-                    type="text"
+                    type="date"
                     required
-                    value={bookingForm.appointmentDate}
+                    min={getTodayISODate()}
+                    value={toISODate(bookingForm.appointmentDate) || bookingForm.appointmentDate}
                     onChange={(e) => setBookingForm({ ...bookingForm, appointmentDate: e.target.value })}
-                    placeholder="เช่น 15 มีนาคม 2567"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    onClick={(e) => {
+                      try {
+                        (e.target as HTMLInputElement).showPicker?.();
+                      } catch {}
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
                   />
+                  <p className="text-[10px] text-[#7A695B] mt-1">
+                    * เลือกได้เฉพาะวันนัดหมายตั้งแต่วันนี้เป็นต้นไป (ไม่สามารถเลือกวันในอดีตได้)
+                  </p>
                 </div>
 
                 <div>
@@ -1238,31 +1883,107 @@ export default function DashboardPage() {
                   />
                 </div>
 
-                <div>
+                <div className="sm:col-span-2">
                   <label className="block font-bold text-[#4A3E37] mb-1">
                     เจ้าหน้าที่ผู้รับผิดชอบ (Officer) *
                   </label>
                   <select
-                    required
-                    value={bookingForm.employee}
-                    onChange={(e) => setBookingForm({ ...bookingForm, employee: e.target.value })}
+                    required={!showInlineEmpForm}
+                    value={showInlineEmpForm ? "__add_new__" : bookingForm.employee}
+                    onChange={(e) => {
+                      if (e.target.value === "__add_new__") {
+                        setShowInlineEmpForm(true);
+                        setInlineEmpForm({ name: "", tel: "" });
+                      } else {
+                        setShowInlineEmpForm(false);
+                        setBookingForm({ ...bookingForm, employee: e.target.value });
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
                   >
-                    <option value="">-- เลือกเจ้าหน้าที่ --</option>
+                    <option value="">— เลือกเจ้าหน้าที่ —</option>
                     {employees.map((emp) => (
                       <option key={emp._id} value={emp._id}>
                         {emp.name} {emp.tel ? `(${emp.tel})` : ""}
                       </option>
                     ))}
+                    <option value="__add_new__">✚ เพิ่มเจ้าหน้าที่ใหม่...</option>
                   </select>
+
+                  {/* Inline add-employee sub-form */}
+                  {showInlineEmpForm && (
+                    <div className="mt-3 p-3 bg-[#F5EFE6] border border-[#C59B27]/40 rounded-xl space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-bold text-[#1C3A27] flex items-center gap-1.5">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                          เพิ่มเจ้าหน้าที่ใหม่
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowInlineEmpForm(false);
+                          }}
+                          className="text-[#7A695B] hover:text-[#2C2520] transition cursor-pointer"
+                          title="ยกเลิก"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          maxLength={200}
+                          value={inlineEmpForm.name}
+                          onChange={(e) => setInlineEmpForm((p) => ({ ...p, name: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleInlineAddEmployee();
+                            }
+                          }}
+                          placeholder="ชื่อ-นามสกุล เจ้าหน้าที่ *"
+                          className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-lg text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                        />
+                        <input
+                          type="tel"
+                          value={inlineEmpForm.tel}
+                          onChange={(e) => setInlineEmpForm((p) => ({ ...p, tel: e.target.value }))}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleInlineAddEmployee();
+                            }
+                          }}
+                          placeholder="เบอร์โทรศัพท์ (ไม่บังคับ)"
+                          className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-lg text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleInlineAddEmployee()}
+                          disabled={inlineEmpLoading}
+                          className="w-full py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {inlineEmpLoading ? "กำลังเพิ่ม..." : "ยืนยันเพิ่มเจ้าหน้าที่"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
                 <button
                   type="button"
-                  onClick={() => setIsBookingModalOpen(false)}
-                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition"
+                  onClick={() => {
+                    setIsBookingModalOpen(false);
+                    setShowInlineEmpForm(false);
+                  }}
+                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
                 >
                   ยกเลิก
                 </button>
@@ -1378,6 +2099,203 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── EMPLOYEE ADD/EDIT MODAL ── */}
+      {isEmployeeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+              <h3 className="font-bold text-lg text-[#1C3A27]">
+                {editingEmployee ? "แก้ไขข้อมูลเจ้าหน้าที่" : "เพิ่มเจ้าหน้าที่ใหม่"}
+              </h3>
+              <button
+                onClick={() => setIsEmployeeModalOpen(false)}
+                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleEmployeeSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#4A3E37] mb-1">
+                  ชื่อเจ้าหน้าที่ (Name) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={200}
+                  value={employeeForm.name}
+                  onChange={(e) => setEmployeeForm({ ...employeeForm, name: e.target.value })}
+                  placeholder="กรอกชื่อ-นามสกุลเจ้าหน้าที่"
+                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#4A3E37] mb-1">
+                  เบอร์โทรศัพท์ (Tel)
+                </label>
+                <input
+                  type="tel"
+                  value={employeeForm.tel ?? ""}
+                  onChange={(e) => setEmployeeForm({ ...employeeForm, tel: e.target.value })}
+                  placeholder="เช่น 081-234-5678 (ไม่บังคับ)"
+                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
+                <button
+                  type="button"
+                  onClick={() => setIsEmployeeModalOpen(false)}
+                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={employeeModalLoading}
+                  className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                >
+                  {employeeModalLoading ? "กำลังบันทึก..." : editingEmployee ? "บันทึกการแก้ไข" : "เพิ่มเจ้าหน้าที่"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── OVERDUE APPOINTMENTS POPUP MODAL ── */}
+      {isOverdueModalOpen && undismissedOverdueList.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-[#FAF8F5] border-2 border-red-400/80 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
+            <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0 text-red-600">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-red-800 flex items-center gap-2">
+                    แจ้งเตือนรายการนัดหมายที่เลยกำหนดวันนัด
+                    <span className="text-xs bg-red-600 text-white font-extrabold px-2 py-0.5 rounded-full">
+                      {undismissedOverdueList.length}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#7A695B] mt-0.5">
+                    พบรายการนัดหมายที่ผ่านกำหนดวันนัดแล้ว ท่านสามารถเลือก แก้ไขวันนัด, ลบรายการ หรือ ละเว้นการแจ้งเตือนได้
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOverdueModalOpen(false)}
+                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
+                title="ปิดหน้าต่าง"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {undismissedOverdueList.map((b) => (
+                <div
+                  key={b._id}
+                  className="p-4 bg-white border border-red-200 rounded-xl shadow-xs hover:border-red-400 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm text-[#1C3A27]">
+                        โฉนดที่ดิน {b.titleDeedNumber}
+                      </span>
+                      <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
+                      <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-red-200">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        เลยกำหนดนัด: {b.appointmentDate}
+                      </span>
+                    </div>
+                    <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
+                      <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
+                      <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
+                      <span><strong className="text-[#7A695B]">เจ้าหน้าที่:</strong> {b.employee?.name || "-"}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
+                    <button
+                      onClick={() => {
+                        setIsOverdueModalOpen(false);
+                        openEditBookingModal(b);
+                      }}
+                      className="px-3 py-1.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      title="แก้ไขรายการนัดหมาย"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      <span>แก้ไข (Edit)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsOverdueModalOpen(false);
+                        startCountdown("booking", b._id, b.titleDeedNumber);
+                      }}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      title="ลบรายการนัดหมาย"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                      <span>ลบ (Delete)</span>
+                    </button>
+                    <button
+                      onClick={() => dismissOverdue(b._id)}
+                      className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                      title="ละเว้นการแจ้งเตือนนี้"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      <span>ละเว้น (Dismiss)</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
+              <button
+                onClick={() => dismissAllOverdue(undismissedOverdueList.map((x) => x._id))}
+                className="text-[#7A3020] hover:text-red-700 font-bold underline cursor-pointer"
+              >
+                ละเว้นทั้งหมด ({undismissedOverdueList.length} รายการ)
+              </button>
+              <button
+                onClick={() => setIsOverdueModalOpen(false)}
+                className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
           </div>
         </div>
       )}

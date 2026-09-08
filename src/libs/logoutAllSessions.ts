@@ -7,15 +7,18 @@ const BACKEND_URL =
  */
 export default async function logoutAllSessions(
   token: string,
-  adminId: string
+  adminId?: string
 ): Promise<{ success: boolean; message: string }> {
   const res = await fetch(
     `${BACKEND_URL}/api/v1/auth/logout-all`,
     {
       method: "POST",
+      credentials: "include",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify(adminId ? { adminId } : {}),
     }
   );
 
