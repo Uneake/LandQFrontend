@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import styles from "./verify-email.module.css";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api/v1";
+  process.env.BACKEND_URL || "http://localhost:5000";
 
 type VerifyState = "loading" | "success" | "error" | "already-verified";
 
@@ -31,7 +31,7 @@ function VerifyEmailContent() {
     const verifyEmail = async () => {
       try {
         const res = await fetch(
-          `${BACKEND_URL}/auth/verify-email?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
+          `${BACKEND_URL}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
         );
         const data = await res.json();
 
@@ -66,15 +66,14 @@ function VerifyEmailContent() {
       <div className={styles.card}>
         {/* Icon */}
         <div
-          className={`${styles.iconWrapper} ${
-            state === "loading"
+          className={`${styles.iconWrapper} ${state === "loading"
               ? styles.iconLoading
               : state === "success"
                 ? styles.iconSuccess
                 : state === "already-verified"
                   ? styles.iconAlready
                   : styles.iconError
-          }`}
+            }`}
         >
           {state === "loading" && (
             <svg
