@@ -8,7 +8,6 @@ export interface Employee {
 
 export interface Booking {
   _id: string;
-  registNum       : string;
   appointmentDate : string;
   titleDeedNumber : string;
   subDistrict     : string;
