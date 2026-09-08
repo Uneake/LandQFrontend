@@ -61,10 +61,10 @@ function VerifyEmailContent() {
 
   /* ---- Derived styling values ---- */
   const emblemBg =
-    state === "loading"   ? "bg-[#F0EAE1] border-2 border-dashed border-[#C59B27] text-[#5C4033]"
-    : state === "success" ? "bg-[#EAF3EC] border-2 border-[#2D6A4F] text-[#2D6A4F]"
-    : state === "already-verified" ? "bg-[#FDF6E2] border-2 border-[#C59B27] text-[#8C6D1F]"
-    : "bg-[#FDF0ED] border-2 border-[#A73A24] text-[#A73A24]";
+    state === "loading" ? "bg-[#F0EAE1] border-2 border-dashed border-[#C59B27] text-[#5C4033]"
+      : state === "success" ? "bg-[#EAF3EC] border-2 border-[#2D6A4F] text-[#2D6A4F]"
+        : state === "already-verified" ? "bg-[#FDF6E2] border-2 border-[#C59B27] text-[#8C6D1F]"
+          : "bg-[#FDF0ED] border-2 border-[#A73A24] text-[#A73A24]";
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-[#12241B] via-[#1C3A27] to-[#2B2118] px-4 py-10 overflow-hidden font-sans">
@@ -115,10 +115,10 @@ function VerifyEmailContent() {
 
         {/* Title */}
         <h1 className="font-serif text-2xl font-bold text-[#1C3A27] text-center tracking-tight mb-1">
-          {state === "loading"          && "Authenticating Identity"}
-          {state === "success"          && "Verification Complete"}
+          {state === "loading" && "Authenticating Identity"}
+          {state === "success" && "Verification Complete"}
           {state === "already-verified" && "Account Already Verified"}
-          {state === "error"            && "Verification Failed"}
+          {state === "error" && "Verification Failed"}
         </h1>
 
         {/* Subtitle */}

@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
             <div>
               <h1 className="text-white font-bold text-base leading-tight tracking-wide">
-                ระบบบริหารจัดการที่ดินและโฉนด
+                ระบบตรวจสอบนัดโอนมรดกที่ดิน
               </h1>
               <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
                 LandQ · Official Management System
@@ -217,7 +217,7 @@ export default function LoginPage() {
 
       {/* ── Footer ── */}
       <footer className="py-6 text-center text-xs text-[#7A695B] border-t border-[#EAE0D4]">
-        ระบบบริหารจัดการที่ดินและโฉนด · LandQ Official Management System © 2026
+        ระบบตรวจสอบนัดโอนมรดกที่ดิน · LandQ Official Management System © 2026
       </footer>
     </div>
   );

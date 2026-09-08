@@ -485,7 +485,7 @@ export default function DashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-white font-bold text-base leading-tight tracking-wide">
-                  ระบบบริหารจัดการที่ดิน
+                  ระบบตรวจสอบนัดโอนมรดกที่ดิน
                 </h1>
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${user.role === "super_admin"
@@ -1355,7 +1355,7 @@ export default function DashboardPage() {
 
       {/* ── Footer ── */}
       <footer className="py-4 text-center text-xs text-[#7A695B] border-t border-[#EAE0D4] mt-auto">
-        ระบบบริหารจัดการที่ดินและโฉนด · LandQ Official Management System © 2026
+        ระบบตรวจสอบนัดโอนมรดกที่ดิน · LandQ Official Management System © 2026
       </footer>
     </div>
   );
