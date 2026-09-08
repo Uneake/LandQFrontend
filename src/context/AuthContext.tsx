@@ -35,23 +35,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Try refreshing the access token using the httpOnly refresh cookie
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+    // 1. Try same-origin proxy first (/api/v1/auth/refresh)
     try {
       const res = await fetch(`${BACKEND_URL}/api/v1/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
-      if (!res.ok) {
-        return null;
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.accessToken) {
+          setAccessToken(data.accessToken);
+          return data.accessToken;
+        }
+      } else if (res.status === 404 && BACKEND_URL === "") {
+        // If same-origin proxy is 404 (e.g. next dev server not restarted), fallback to direct backend
+        const directUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+        console.warn(`Proxy /api/v1/auth/refresh returned 404. Trying direct fallback to ${directUrl}...`);
+        const fallbackRes = await fetch(`${directUrl}/api/v1/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && fallbackData.accessToken) {
+            setAccessToken(fallbackData.accessToken);
+            return fallbackData.accessToken;
+          }
+        }
+      } else {
+        const errJson = await res.json().catch(() => null);
+        console.warn("Session refresh response not ok:", res.status, errJson?.message);
       }
-      const data = await res.json();
-      if (data.success && data.accessToken) {
-        setAccessToken(data.accessToken);
-        return data.accessToken;
-      }
-      return null;
-    } catch {
-      return null;
+    } catch (err) {
+      console.warn("Session refresh fetch error:", err);
     }
+    return null;
   }, []);
 
   const loadUser = useCallback(async (token: string) => {
