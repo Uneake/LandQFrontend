@@ -33,15 +33,22 @@ export default async function getBookings(params: {
   search?: string;
   page?  : number;
   limit? : number;
+  all?   : boolean;
+  token? : string;
 }): Promise<BookingsResponse> {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.page)   query.set("page",   String(params.page));
   if (params.limit)  query.set("limit",  String(params.limit));
+  if (params.all)    query.set("all",    "true");
+
+  const headers: HeadersInit = params.token
+    ? { Authorization: `Bearer ${params.token}` }
+    : {};
 
   const res = await fetch(
     `${BACKEND_URL}/api/v1/bookings?${query.toString()}`,
-    { method: "GET", cache: "no-store" }
+    { method: "GET", cache: "no-store", headers }
   );
 
   if (!res.ok) {

@@ -122,7 +122,13 @@ export default function DashboardPage() {
     async (q: string, p: number) => {
       setBookingsLoading(true);
       try {
-        const res = await getBookings({ search: q, page: p, limit: 10 });
+        const res = await getBookings({
+          search: q,
+          page: p,
+          limit: 10,
+          all: true,
+          token: accessToken || undefined,
+        });
         setBookings(res.data);
         setBookingTotal(res.total);
         setBookingTotalPages(res.totalPages);
@@ -132,7 +138,7 @@ export default function DashboardPage() {
         setBookingsLoading(false);
       }
     },
-    []
+    [accessToken]
   );
 
   const fetchEmployeesList = useCallback(async () => {
@@ -642,13 +648,31 @@ export default function DashboardPage() {
                     type="text"
                     value={bookingSearch}
                     onChange={(e) => {
-                      setBookingSearch(e.target.value);
+                      const val = e.target.value;
+                      setBookingSearch(val);
                       setBookingPage(1);
-                      fetchBookingsList(e.target.value, 1);
+                      fetchBookingsList(val, 1);
                     }}
-                    placeholder="ค้นหาเลขโฉนดที่ดิน..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
+                    placeholder="ค้นหาโฉนดที่ดิน, ตำบล, ทายาท, หรือผู้นัดหมาย..."
+                    className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none placeholder-[#B0A098] focus:border-[#C59B27] focus:ring-1 focus:ring-[#C59B27]/20"
                   />
+                  {bookingSearch && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBookingSearch("");
+                        setBookingPage(1);
+                        fetchBookingsList("", 1);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A695B] hover:text-[#2C2520] p-1 rounded-full text-xs"
+                      title="ล้างคำค้นหา"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
 
