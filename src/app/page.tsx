@@ -23,19 +23,26 @@ function formatFee(fee: number) {
 
 /* ─────────────────────── main page ─────────────────────── */
 export default function Home() {
-  const [query, setQuery]           = useState("");
-  const [input, setInput]           = useState("");
-  const [bookings, setBookings]     = useState<Booking[]>([]);
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState("");
-  const [page, setPage]             = useState(1);
+  const [query, setQuery] = useState("");
+  const [input, setInput] = useState("");
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [total, setTotal]           = useState(0);
-  const [searched, setSearched]     = useState(false);
-  const debounceRef                 = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [total, setTotal] = useState(0);
+  const [searched, setSearched] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* fetch data whenever query or page changes */
   const fetchData = useCallback(async (q: string, p: number) => {
+    if (!q.trim()) {
+      setBookings([]);
+      setTotal(0);
+      setTotalPages(0);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -82,20 +89,20 @@ export default function Home() {
   const pageRange = () => {
     const delta = 2;
     const start = Math.max(1, page - delta);
-    const end   = Math.min(totalPages, page + delta);
+    const end = Math.min(totalPages, page + delta);
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
   /* ─── column definitions ─── */
   const columns = [
-    { key: "appointmentDate",  label: "วันที่นัด" },
-    { key: "titleDeedNumber",  label: "โฉนดที่ดิน" },
-    { key: "subDistrict",      label: "ตำบล" },
-    { key: "heir",             label: "เจ้ามรดก" },
-    { key: "appointedBy",      label: "ผู้นัด" },
-    { key: "fee",              label: "ค่าธรรมเนียม" },
+    { key: "appointmentDate", label: "วันที่นัด" },
+    { key: "titleDeedNumber", label: "โฉนดที่ดิน" },
+    { key: "subDistrict", label: "ตำบล" },
+    { key: "heir", label: "เจ้ามรดก" },
+    { key: "appointedBy", label: "ผู้นัด" },
+    { key: "fee", label: "ค่าธรรมเนียม" },
     { key: "registrationDate", label: "วันจดทะเบียน" },
-    { key: "employee",         label: "เจ้าหน้าที่" },
+    { key: "employee", label: "เจ้าหน้าที่" },
   ];
 
   return (
@@ -147,7 +154,7 @@ export default function Home() {
               type="text"
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="ค้นหาเจ้ามรดก, ผู้นัด หรือโฉนดที่ดิน..."
+              placeholder="ค้นหาโฉนดที่ดิน..."
               className="w-full pl-11 pr-4 py-4 bg-white text-[#2C2520] text-sm outline-none placeholder-[#B0A098] focus:bg-[#FDFAF7] transition-colors"
             />
           </div>
@@ -252,9 +259,8 @@ export default function Home() {
                   {bookings.map((b, idx) => (
                     <tr
                       key={b._id}
-                      className={`border-t border-[#E0D8D0] hover:bg-[#F0E8DE] transition-colors ${
-                        idx % 2 === 0 ? "bg-white" : "bg-[#FAF6F1]"
-                      }`}
+                      className={`border-t border-[#E0D8D0] hover:bg-[#F0E8DE] transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-[#FAF6F1]"
+                        }`}
                     >
                       {/* วันที่นัด */}
                       <td className="px-4 py-3.5 text-[#4A3E37] whitespace-nowrap">
@@ -332,11 +338,10 @@ export default function Home() {
                     key={p}
                     id={`page-${p}`}
                     onClick={() => handlePageChange(p)}
-                    className={`w-9 h-9 rounded border text-xs font-bold transition-colors ${
-                      p === page
+                    className={`w-9 h-9 rounded border text-xs font-bold transition-colors ${p === page
                         ? "bg-[#1C3A27] border-[#1C3A27] text-white shadow-sm"
                         : "bg-white border-[#D5C8BC] text-[#4A3E37] hover:bg-[#F0E8DE]"
-                    }`}
+                      }`}
                   >
                     {p}
                   </button>
