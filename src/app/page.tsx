@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import getBookings, { Booking } from "@/libs/getBookings";
 import { useAuth } from "@/context/AuthContext";
@@ -35,7 +35,6 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
   const [searched, setSearched] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* fetch data whenever query or page changes */
   const fetchData = useCallback(async (q: string, p: number) => {
@@ -61,27 +60,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (searched) fetchData(query, page);
-  }, [query, page, searched, fetchData]);
+    if (searched && query) {
+      fetchData(query, page);
+    }
+  }, [page, query, searched, fetchData]);
 
-  /* debounce typing → auto search */
-  const handleInputChange = (val: string) => {
-    setInput(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setQuery(val);
-      setPage(1);
-      setSearched(true);
-    }, 500);
-  };
-
-  /* explicit submit */
+  /* explicit submit - triggers when clicking "ค้นหา", pressing Enter on PC, or "ไป" on phone */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setQuery(input);
+    const cleanInput = input.trim();
+    setQuery(cleanInput);
     setPage(1);
     setSearched(true);
+    if (!cleanInput) {
+      setBookings([]);
+      setTotal(0);
+      setTotalPages(0);
+      return;
+    }
+    fetchData(cleanInput, 1);
   };
 
   const handlePageChange = (p: number) => {
@@ -182,9 +179,10 @@ export default function Home() {
             </div>
             <input
               id="search-input"
-              type="text"
+              type="search"
+              enterKeyHint="search"
               value={input}
-              onChange={(e) => handleInputChange(e.target.value)}
+              onChange={(e) => setInput(e.target.value)}
               placeholder="ค้นหาโฉนดที่ดิน..."
               className="w-full pl-11 pr-4 py-4 bg-white text-[#2C2520] text-sm outline-none placeholder-[#B0A098] focus:bg-[#FDFAF7] transition-colors"
             />
@@ -284,11 +282,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Table ── */}
+        {/* ── Table & Mobile Cards ── */}
         {!loading && !error && bookings.length > 0 && (
           <>
-            {/* Horizontal scroll wrapper for wide table */}
-            <div className="overflow-x-auto rounded-xl border border-[#D8CFC4] shadow-md">
+            {/* Desktop Table (Visible on md and above) */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-[#D8CFC4] shadow-md">
               <table className="w-full border-collapse text-sm min-w-[900px]">
                 <thead>
                   <tr className="bg-[#1C3A27] text-white">
@@ -358,6 +356,62 @@ export default function Home() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card List (Visible on mobile screens below md - fits full width without scrolling) */}
+            <div className="block md:hidden space-y-3.5">
+              {bookings.map((b) => (
+                <div
+                  key={b._id}
+                  className="bg-white border border-[#D8CFC4] rounded-2xl p-4 shadow-sm space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2 border-b border-[#EAE0D4] pb-2.5">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#C59B27] uppercase tracking-wider block">
+                        เลขที่โฉนดที่ดิน
+                      </span>
+                      <span className="text-base font-bold text-[#1C3A27]">
+                        {b.titleDeedNumber}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-[#1C3A27] text-white rounded-lg shrink-0">
+                      {formatDate(b.appointmentDate)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 text-xs">
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">ตำบล</span>
+                      <span className="text-[#2C2520] font-medium">{b.subDistrict || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">ค่าธรรมเนียม</span>
+                      <span className="text-[#6B4E00] font-bold">{formatFee(b.fee)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">เจ้ามรดก</span>
+                      <span className="text-[#2C2520] font-medium">{b.heir || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">ผู้นัดหมาย</span>
+                      <span className="text-[#2C2520] font-medium">{b.appointedBy || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">วันจดทะเบียน</span>
+                      <span className="text-[#2C2520] font-medium">
+                        {b.registrationDate ? formatDate(b.registrationDate) : "-"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#7A695B] block text-[11px]">เจ้าหน้าที่</span>
+                      <span className="text-[#2C2520] font-medium">
+                        {b.employee?.name || "-"}
+                        {b.employee?.tel ? ` (โทร ${b.employee.tel})` : ""}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* ── Pagination ── */}
