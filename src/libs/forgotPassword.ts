@@ -13,6 +13,9 @@ export default async function forgotPassword(email: string) {
   if (!res.ok) {
     throw new Error(data.message || "ไม่สามารถส่งคำขอรีเซ็ตรหัสผ่านได้");
   }
+  if (!data.success) {
+    throw new Error("ไม่สามารถส่งอีเมลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งภายหลัง");
+  }
 
   return data;
 }
