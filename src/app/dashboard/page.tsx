@@ -1924,14 +1924,13 @@ export default function DashboardPage() {
                     เจ้าหน้าที่ผู้รับผิดชอบ (Officer) *
                   </label>
                   <select
-                    required={!showInlineEmpForm}
-                    value={showInlineEmpForm ? "__add_new__" : bookingForm.employee}
+                    required
+                    value={bookingForm.employee}
                     onChange={(e) => {
                       if (e.target.value === "__add_new__") {
                         setShowInlineEmpForm(true);
                         setInlineEmpForm({ name: "", tel: "" });
                       } else {
-                        setShowInlineEmpForm(false);
                         setBookingForm({ ...bookingForm, employee: e.target.value });
                       }
                     }}
@@ -1945,70 +1944,6 @@ export default function DashboardPage() {
                     ))}
                     <option value="__add_new__">✚ เพิ่มเจ้าหน้าที่ใหม่...</option>
                   </select>
-
-                  {/* Inline add-employee sub-form */}
-                  {showInlineEmpForm && (
-                    <div className="mt-3 p-3 bg-[#F5EFE6] border border-[#C59B27]/40 rounded-xl space-y-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-bold text-[#1C3A27] flex items-center gap-1.5">
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                          </svg>
-                          เพิ่มเจ้าหน้าที่ใหม่
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowInlineEmpForm(false);
-                          }}
-                          className="text-[#7A695B] hover:text-[#2C2520] transition cursor-pointer"
-                          title="ยกเลิก"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          maxLength={200}
-                          value={inlineEmpForm.name}
-                          onChange={(e) => setInlineEmpForm((p) => ({ ...p, name: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleInlineAddEmployee();
-                            }
-                          }}
-                          placeholder="ชื่อ-นามสกุล เจ้าหน้าที่ *"
-                          className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-lg text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                        />
-                        <input
-                          type="tel"
-                          value={inlineEmpForm.tel}
-                          onChange={(e) => setInlineEmpForm((p) => ({ ...p, tel: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleInlineAddEmployee();
-                            }
-                          }}
-                          placeholder="เบอร์โทรศัพท์ (ไม่บังคับ)"
-                          className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-lg text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleInlineAddEmployee()}
-                          disabled={inlineEmpLoading}
-                          className="w-full py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-lg transition disabled:opacity-50 cursor-pointer"
-                        >
-                          {inlineEmpLoading ? "กำลังเพิ่ม..." : "ยืนยันเพิ่มเจ้าหน้าที่"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -2029,6 +1964,69 @@ export default function DashboardPage() {
                   className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
                 >
                   {bookingModalLoading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showInlineEmpForm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+              <h3 className="font-bold text-lg text-[#1C3A27]">เพิ่มเจ้าหน้าที่ใหม่</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowInlineEmpForm(false);
+                  setInlineEmpForm({ name: "", tel: "" });
+                }}
+                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
+                title="ยกเลิก"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleInlineAddEmployee} className="space-y-3">
+              <input
+                autoFocus
+                type="text"
+                maxLength={200}
+                required
+                value={inlineEmpForm.name}
+                onChange={(e) => setInlineEmpForm((p) => ({ ...p, name: e.target.value }))}
+                placeholder="ชื่อ-นามสกุล เจ้าหน้าที่ *"
+                className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+              />
+              <input
+                type="tel"
+                value={inlineEmpForm.tel}
+                onChange={(e) => setInlineEmpForm((p) => ({ ...p, tel: e.target.value }))}
+                placeholder="เบอร์โทรศัพท์ (ไม่บังคับ)"
+                className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+              />
+              <div className="flex gap-3 justify-end pt-3">
+                <button
+                  type="button"
+                  disabled={inlineEmpLoading}
+                  onClick={() => {
+                    setShowInlineEmpForm(false);
+                    setInlineEmpForm({ name: "", tel: "" });
+                  }}
+                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={inlineEmpLoading}
+                  className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                >
+                  {inlineEmpLoading ? "กำลังเพิ่ม..." : "เพิ่มเจ้าหน้าที่"}
                 </button>
               </div>
             </form>
