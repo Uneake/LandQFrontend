@@ -12,12 +12,13 @@ if (process.env.NODE_ENV === "production") {
   }
 }
 
-// In production, use same-origin proxy (Next.js rewrites /api/v1/* → backend)
-// so the refresh-token cookie stays first-party and isn't blocked by browsers.
-// In development, call the backend directly (no cross-site issues on localhost).
+// In both production and development, browser requests use same-origin proxy (Next.js rewrites /api/v1/* → backend)
+// so the refresh-token cookie stays first-party and is never blocked across ports or domains on page refresh.
+// On server-side (SSR), use configured backend URL or localhost:5000.
 const BACKEND_URL =
-  typeof window !== "undefined" && process.env.NODE_ENV === "production"
+  typeof window !== "undefined"
     ? "" // same-origin: fetch("/api/v1/...") goes through Next.js rewrite proxy
     : configuredBackendUrl || "http://localhost:5000";
 
 export default BACKEND_URL;
+
