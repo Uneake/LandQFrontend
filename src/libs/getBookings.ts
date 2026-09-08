@@ -55,8 +55,7 @@ export default async function getBookings(params: {
   );
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "ไม่สามารถดึงข้อมูลการจองได้");
+    throw new Error("ไม่สามารถค้นหาข้อมูลการจองได้");
   }
 
   return res.json();

@@ -316,7 +316,7 @@ export default function DashboardPage() {
         setBookingTotal(res.total);
         setBookingTotalPages(res.totalPages);
       } catch (err: unknown) {
-        addToast("error", err instanceof Error ? err.message : "ไม่สามารถโหลดข้อมูลการจองได้");
+        addToast("error", "ไม่สามารถโหลดข้อมูลการจองได้ กรุณาลองใหม่อีกครั้ง");
       } finally {
         setBookingsLoading(false);
       }

@@ -53,7 +53,7 @@ export default function Home() {
       setTotal(res.total);
       setTotalPages(res.totalPages);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด");
+      setError("ไม่สามารถค้นหาข้อมูลการจองได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
