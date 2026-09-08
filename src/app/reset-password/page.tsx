@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import resetPassword from "@/libs/resetPassword";
@@ -9,6 +9,12 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const id = searchParams.get("id") || "";
+
+  useEffect(() => {
+    if (token || id) {
+      window.history.replaceState(null, "", "/reset-password");
+    }
+  }, [token, id]);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

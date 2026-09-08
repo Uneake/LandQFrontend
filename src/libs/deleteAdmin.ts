@@ -1,5 +1,4 @@
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+import BACKEND_URL from "@/libs/backendUrl";
 
 export default async function deleteAdmin(token: string, id: string) {
   const res = await fetch(`${BACKEND_URL}/api/v1/admins/${id}`, {

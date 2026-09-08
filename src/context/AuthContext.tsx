@@ -3,9 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import getUserProfile from "@/libs/getUserProfile";
 import userLogout from "@/libs/userLogout";
-
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+import BACKEND_URL from "@/libs/backendUrl";
 
 export interface AdminUser {
   id: string;
@@ -48,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (data.success && data.accessToken) {
         setAccessToken(data.accessToken);
-        localStorage.setItem("landq_access_token", data.accessToken);
         return data.accessToken;
       }
       return null;
@@ -81,23 +78,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setUser(null);
       setAccessToken(null);
-      localStorage.removeItem("landq_access_token");
     }
   }, [refreshAccessToken]);
 
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
-      const storedToken = localStorage.getItem("landq_access_token");
-      if (storedToken) {
-        setAccessToken(storedToken);
-        await loadUser(storedToken);
-      } else {
-        // Try refresh token cookie in case user returned
-        const refreshedToken = await refreshAccessToken();
-        if (refreshedToken) {
-          await loadUser(refreshedToken);
-        }
+      const refreshedToken = await refreshAccessToken();
+      if (refreshedToken) {
+        await loadUser(refreshedToken);
       }
       setIsLoading(false);
     };
@@ -107,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (token: string) => {
     setAccessToken(token);
-    localStorage.setItem("landq_access_token", token);
     await loadUser(token);
   };
 
@@ -119,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setAccessToken(null);
-      localStorage.removeItem("landq_access_token");
     }
   };
 

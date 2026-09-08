@@ -1,5 +1,4 @@
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+import BACKEND_URL from "@/libs/backendUrl";
 
 /**
  * Super-admin: revoke ALL refresh tokens of a target admin,

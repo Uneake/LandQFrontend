@@ -1,5 +1,4 @@
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+import BACKEND_URL from "@/libs/backendUrl";
 
 export default async function userLogout(token?: string) {
   const headers: HeadersInit = token
