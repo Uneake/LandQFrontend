@@ -95,7 +95,6 @@ export default function Home() {
     { key: "heir", label: "เจ้ามรดก" },
     { key: "appointedBy", label: "ผู้นัด" },
     { key: "fee", label: "ค่าธรรมเนียม" },
-    { key: "registrationDate", label: "วันจดทะเบียน" },
     { key: "employee", label: "เจ้าหน้าที่" },
   ];
 
@@ -345,12 +344,6 @@ export default function Home() {
                     <div>
                       <span className="text-[#7A695B] block text-xs font-semibold">ผู้นัดหมาย</span>
                       <span className="text-[#2C2520] font-medium text-base">{b.appointedBy || "-"}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#7A695B] block text-xs font-semibold">วันจดทะเบียน</span>
-                      <span className="text-[#2C2520] font-medium text-base">
-                        {b.registrationDate ? formatDate(b.registrationDate) : "-"}
-                      </span>
                     </div>
                     <div>
                       <span className="text-[#7A695B] block text-xs font-semibold">เจ้าหน้าที่</span>
