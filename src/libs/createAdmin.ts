@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface CreateAdminData {
   username: string;
@@ -17,6 +18,7 @@ export default async function createAdmin(token: string, adminData: CreateAdminD
     body: JSON.stringify(adminData),
   });
 
+  captureNewAccessToken(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.message || "ไม่สามารถสร้างบัญชีแอดมินได้");

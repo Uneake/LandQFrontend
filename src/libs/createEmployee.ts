@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface CreateEmployeeData {
   name: string;
@@ -18,6 +19,7 @@ export default async function createEmployee(
     body: JSON.stringify(data),
   });
 
+  captureNewAccessToken(res);
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(json.message || "ไม่สามารถเพิ่มเจ้าหน้าที่ได้");

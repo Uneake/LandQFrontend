@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface UpdateBookingData {
   appointmentDate?: string;
@@ -25,6 +26,7 @@ export default async function updateBooking(
     body: JSON.stringify(bookingData),
   });
 
+  captureNewAccessToken(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.message || "ไม่สามารถแก้ไขรายการนัดหมายได้");

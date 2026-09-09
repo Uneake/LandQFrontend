@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export default async function userLogout(token?: string) {
   const headers: HeadersInit = token
@@ -11,6 +12,7 @@ export default async function userLogout(token?: string) {
     headers,
   });
 
+  captureNewAccessToken(res);
   if (!res.ok) {
     throw new Error("Cannot logout user");
   }

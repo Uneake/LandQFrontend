@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 /**
  * Super-admin: revoke ALL refresh tokens of a target admin,
@@ -21,6 +22,7 @@ export default async function logoutAllSessions(
     }
   );
 
+  captureNewAccessToken(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.message || "ไม่สามารถยกเลิก session ของผู้ใช้ได้");

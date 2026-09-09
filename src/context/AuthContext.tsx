@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import getUserProfile from "@/libs/getUserProfile";
 import userLogout from "@/libs/userLogout";
 import BACKEND_URL from "@/libs/backendUrl";
+import { onAccessTokenRefreshed } from "@/libs/accessTokenEvents";
 
 export interface AdminUser {
   id: string;
@@ -32,6 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => onAccessTokenRefreshed(setAccessToken), []);
 
   // Try refreshing the access token using the httpOnly refresh cookie
   const refreshAccessToken = useCallback(async (): Promise<string | null> => {

@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface CreateBookingData {
   appointmentDate: string;
@@ -24,6 +25,7 @@ export default async function createBooking(
     body: JSON.stringify(bookingData),
   });
 
+  captureNewAccessToken(res);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.message || "ไม่สามารถเพิ่มรายการนัดหมายได้");

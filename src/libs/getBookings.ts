@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface Employee {
   name: string;
@@ -55,6 +56,7 @@ export default async function getBookings(params: {
     { method: "GET", cache: "no-store", headers }
   );
 
+  captureNewAccessToken(res);
   if (!res.ok) {
     throw new Error("ไม่สามารถค้นหาข้อมูลการจองได้");
   }

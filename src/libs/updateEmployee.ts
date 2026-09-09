@@ -1,4 +1,5 @@
 import BACKEND_URL from "@/libs/backendUrl";
+import { captureNewAccessToken } from "@/libs/accessTokenEvents";
 
 export interface UpdateEmployeeData {
   name?: string;
@@ -19,6 +20,7 @@ export default async function updateEmployee(
     body: JSON.stringify(data),
   });
 
+  captureNewAccessToken(res);
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(json.message || "ไม่สามารถแก้ไขข้อมูลเจ้าหน้าที่ได้");
