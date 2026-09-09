@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import TopMenu from "@/components/TopMenu";
 
 const prompt = Prompt({
   weight: ["300", "400", "500", "600", "700"],
@@ -23,7 +24,10 @@ export default function RootLayout({
   return (
     <html lang="th" className={prompt.variable}>
       <body className="font-sans antialiased text-base bg-[#FAF8F5] text-[#2C2520] min-h-screen selection:bg-[#C59B27]/30">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <TopMenu/>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

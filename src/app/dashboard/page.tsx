@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import getBookings, { Booking } from "@/libs/getBookings";
 import createBooking, { CreateBookingData } from "@/libs/createBooking";
@@ -876,65 +875,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Top Navigation Bar ── */}
-      <header className="bg-[#1C3A27] border-b-4 border-[#C59B27] shadow-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#C59B27]/20 border-2 border-[#C59B27] flex items-center justify-center shrink-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#C59B27">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-white font-bold text-base leading-tight tracking-wide">
-                  ระบบตรวจสอบนัดโอนมรดกที่ดิน
-                </h1>
-                <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${user.role === "super_admin"
-                    ? "bg-[#C59B27] text-[#1C3A27]"
-                    : "bg-[#2D5A3F] text-white border border-[#C59B27]/40"
-                    }`}
-                >
-                  {user.role === "super_admin" ? "Super Admin" : "Admin"}
-                </span>
-              </div>
-              <p className="text-[#C59B27] text-xs font-medium">
-                ยินดีต้อนรับ, {user.username} ({user.email})
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              target="_blank"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#EAE0D4] hover:text-[#C59B27] bg-[#2D5A3F]/50 rounded-lg border border-[#C59B27]/30 transition"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              <span>ดูหน้าค้นหาประชาชน</span>
-            </Link>
-
-            <button
-              onClick={async () => {
-                await logout();
-                router.push("/login");
-              }}
-              className="px-3.5 py-1.5 bg-[#7A3020] hover:bg-[#8D3826] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              <span>ออกจากระบบ</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      
 
       {/* ── Main Container with Sidebar ── */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row gap-6">
@@ -1929,14 +1870,14 @@ export default function DashboardPage() {
 
                 <div>
                   <label className="block font-bold text-[#4A3E37] mb-1">
-                    ทายาท/ผู้รับมรดก (Heir) *
+                    เจ้ามรดก
                   </label>
                   <input
                     type="text"
                     required
                     value={bookingForm.heir}
                     onChange={(e) => setBookingForm({ ...bookingForm, heir: e.target.value })}
-                    placeholder="ชื่อ-นามสกุล ผู้สืบสันดาน"
+                    placeholder="ชื่อ-นามสกุล เจ้ามรดก"
                     className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
                   />
                 </div>

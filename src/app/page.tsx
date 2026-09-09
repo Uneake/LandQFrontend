@@ -102,55 +102,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#F5EFE6] font-sans">
 
-      {/* ── Top Header Bar ── */}
-      <header className="bg-[#1C3A27] border-b-4 border-[#C59B27] shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-[#C59B27]/20 border-2 border-[#C59B27] flex items-center justify-center shrink-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#C59B27">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-white font-bold text-lg leading-tight tracking-wide">
-                LandQ
-              </h1>
-              <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
-                ระบบตรวจสอบนัดโอนมรดกที่ดิน
-              </p>
-            </div>
-          </div>
-
-          <div>
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="px-4 py-2.5 bg-[#C59B27] hover:bg-[#A8832A] text-white text-sm font-bold rounded-xl transition flex items-center gap-2 shadow-sm"
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7" />
-                  <rect x="14" y="3" width="7" height="7" />
-                  <rect x="14" y="14" width="7" height="7" />
-                  <rect x="3" y="14" width="7" height="7" />
-                </svg>
-                <span>แดชบอร์ด ({user.username})</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="px-4 py-2.5 bg-[#2D5A3F] hover:bg-[#3E7051] border border-[#C59B27]/40 text-white text-sm font-bold rounded-xl transition flex items-center gap-2 shadow-sm"
-              >
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C59B27" strokeWidth="2">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                  <polyline points="10 17 15 12 10 7" />
-                  <line x1="15" y1="12" x2="3" y2="12" />
-                </svg>
-                <span>เข้าสู่ระบบเจ้าหน้าที่</span>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
 
       {/* ── Hero Search Section ── */}
       <section className="bg-gradient-to-b from-[#2D5A3F] to-[#1C3A27] py-16 px-6 text-center">
@@ -331,12 +282,6 @@ export default function Home() {
                         <span className="inline-block px-3 py-1 bg-[#FDF6E2] border border-[#DFD7CC] text-[#6B4E00] text-sm font-bold rounded-lg">
                           {formatFee(b.fee)}
                         </span>
-                      </td>
-                      {/* วันจดทะเบียน */}
-                      <td className="px-4 py-4 text-[#4A3E37] whitespace-nowrap">
-                        {b.registrationDate ? formatDate(b.registrationDate) : (
-                          <span className="text-[#B0A098] italic text-sm">ไม่ระบุ</span>
-                        )}
                       </td>
                       {/* เจ้าหน้าที่ */}
                       <td className="px-4 py-4">

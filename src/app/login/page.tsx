@@ -52,36 +52,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F5EFE6] flex flex-col justify-between font-sans">
-      {/* ── Top Header Bar ── */}
-      <header className="bg-[#1C3A27] border-b-4 border-[#C59B27] shadow-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-4 hover:opacity-90 transition">
-            <div className="w-11 h-11 rounded-full bg-[#C59B27]/20 border-2 border-[#C59B27] flex items-center justify-center shrink-0">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="#C59B27">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-white font-bold text-base leading-tight tracking-wide">
-                ระบบตรวจสอบนัดโอนมรดกที่ดิน
-              </h1>
-              <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
-                LandQ · Official Management System
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/"
-            className="text-xs text-[#EAE0D4] hover:text-[#C59B27] transition flex items-center gap-1.5"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            กลับหน้าค้นหา
-          </Link>
-        </div>
-      </header>
 
       {/* ── Login Card Section ── */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
