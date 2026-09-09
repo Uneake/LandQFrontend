@@ -112,6 +112,16 @@ function getTodayISODate(): string {
   return `${year}-${month}-${day}`;
 }
 
+function isDeletedEmployeeBooking(b: Booking): boolean {
+  if (!b.employee) return true;
+  if (typeof b.employee === "object") {
+    if (!b.employee.name || b.employee.name.trim() === "" || b.employee.name === "-") {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* ─────────────────────── Toast Alert ─────────────────────── */
 interface Toast {
   id: string;
@@ -234,12 +244,21 @@ export default function DashboardPage() {
   const [isOverdueModalOpen, setIsOverdueModalOpen] = useState(false);
   const [hasAutoOpenedOverdue, setHasAutoOpenedOverdue] = useState(false);
 
-  // Load dismissed overdue IDs from localStorage
+  // Deleted-Employee Appointment State
+  const [dismissedDeletedEmpIds, setDismissedDeletedEmpIds] = useState<string[]>([]);
+  const [isDeletedEmpModalOpen, setIsDeletedEmpModalOpen] = useState(false);
+  const [hasAutoOpenedDeletedEmp, setHasAutoOpenedDeletedEmp] = useState(false);
+
+  // Load dismissed IDs from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("landq_dismissed_overdue");
-      if (stored) {
-        setDismissedOverdueIds(JSON.parse(stored));
+      const storedOverdue = localStorage.getItem("landq_dismissed_overdue");
+      if (storedOverdue) {
+        setDismissedOverdueIds(JSON.parse(storedOverdue));
+      }
+      const storedDeletedEmp = localStorage.getItem("landq_dismissed_deleted_emp");
+      if (storedDeletedEmp) {
+        setDismissedDeletedEmpIds(JSON.parse(storedDeletedEmp));
       }
     } catch {
       // ignore
@@ -249,6 +268,9 @@ export default function DashboardPage() {
   const overdueBookings = bookings.filter((b) => isPastAppointmentDate(b.appointmentDate));
   const undismissedOverdueList = overdueBookings.filter((b) => !dismissedOverdueIds.includes(b._id));
 
+  const deletedEmpBookings = bookings.filter((b) => isDeletedEmployeeBooking(b));
+  const undismissedDeletedEmpList = deletedEmpBookings.filter((b) => !dismissedDeletedEmpIds.includes(b._id));
+
   // Automatically open overdue modal on initial load when overdue bookings are detected
   useEffect(() => {
     if (!hasAutoOpenedOverdue && undismissedOverdueList.length > 0 && !bookingsLoading) {
@@ -256,6 +278,14 @@ export default function DashboardPage() {
       setHasAutoOpenedOverdue(true);
     }
   }, [hasAutoOpenedOverdue, undismissedOverdueList.length, bookingsLoading]);
+
+  // Automatically open deleted employee modal on initial load if no overdue modal is blocking
+  useEffect(() => {
+    if (!hasAutoOpenedDeletedEmp && undismissedDeletedEmpList.length > 0 && !bookingsLoading && !isOverdueModalOpen) {
+      setIsDeletedEmpModalOpen(true);
+      setHasAutoOpenedDeletedEmp(true);
+    }
+  }, [hasAutoOpenedDeletedEmp, undismissedDeletedEmpList.length, bookingsLoading, isOverdueModalOpen]);
 
   const dismissOverdue = (id: string) => {
     setDismissedOverdueIds((prev) => {
@@ -284,6 +314,39 @@ export default function DashboardPage() {
       const updated = prev.filter((item) => item !== id);
       try {
         localStorage.setItem("landq_dismissed_overdue", JSON.stringify(updated));
+      } catch { }
+      return updated;
+    });
+    addToast("info", "ยกเลิกการละเว้นรายการนี้แล้ว");
+  };
+
+  const dismissDeletedEmp = (id: string) => {
+    setDismissedDeletedEmpIds((prev) => {
+      const updated = Array.from(new Set([...prev, id]));
+      try {
+        localStorage.setItem("landq_dismissed_deleted_emp", JSON.stringify(updated));
+      } catch { }
+      return updated;
+    });
+    addToast("info", "ละเว้นการแจ้งเตือนเจ้าหน้าที่ถูกลบสำหรับรายการนี้แล้ว");
+  };
+
+  const dismissAllDeletedEmp = (ids: string[]) => {
+    setDismissedDeletedEmpIds((prev) => {
+      const updated = Array.from(new Set([...prev, ...ids]));
+      try {
+        localStorage.setItem("landq_dismissed_deleted_emp", JSON.stringify(updated));
+      } catch { }
+      return updated;
+    });
+    addToast("info", "ละเว้นการแจ้งเตือนเจ้าหน้าที่ถูกลบทั้งหมดแล้ว");
+  };
+
+  const unDismissDeletedEmp = (id: string) => {
+    setDismissedDeletedEmpIds((prev) => {
+      const updated = prev.filter((item) => item !== id);
+      try {
+        localStorage.setItem("landq_dismissed_deleted_emp", JSON.stringify(updated));
       } catch { }
       return updated;
     });
@@ -989,6 +1052,20 @@ export default function DashboardPage() {
                       <span>เลยกำหนดนัด ({undismissedOverdueList.length})</span>
                     </button>
                   )}
+                  {undismissedDeletedEmpList.length > 0 && (
+                    <button
+                      onClick={() => setIsDeletedEmpModalOpen(true)}
+                      className="px-3.5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-xs shrink-0 cursor-pointer animate-pulse"
+                      title="คลิกเพื่อดูและจัดการรายการที่เจ้าหน้าที่ถูกลบ / ยังไม่ได้รับมอบหมาย"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>
+                      <span>เจ้าหน้าที่ถูกลบ ({undismissedDeletedEmpList.length})</span>
+                    </button>
+                  )}
                   <button
                     onClick={openCreateBookingModal}
                     className="px-4 py-2.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
@@ -1090,74 +1167,7 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
-
-                  {/* 3. Filter by Employee */}
-                  <div className="md:col-span-3 relative">
-                    <select
-                      value={bookingSearchEmployee}
-                      disabled={bookingsLoading}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setBookingSearchEmployee(value);
-                        setBookingPage(1);
-                        fetchBookingsList(bookingSearch, 1, bookingSearchDate, value);
-                      }}
-                      className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
-                    >
-                      <option value="">— เจ้าหน้าที่ทั้งหมด —</option>
-                      {employees.map((emp) => (
-                        <option key={emp._id} value={emp._id}>
-                          {emp.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  disabled={bookingsLoading}
-                  onClick={() => submitBookingSearch()}
-                  className="px-4 py-2 bg-[#C59B27] hover:bg-[#A8832A] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                >
-                  ค้นหา
-                </button>
-
-                {/* Active Filter Indicators / Clear All button */}
-                {(bookingSearch || bookingSearchDate || bookingSearchEmployee) && (
-                  <div className="flex items-center gap-2 flex-wrap text-xs text-[#7A695B]">
-                    <span className="font-semibold">ตัวกรอง:</span>
-                    {bookingSearch && (
-                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        คำค้นหา: &quot;{bookingSearch}&quot;
-                      </span>
-                    )}
-                    {bookingSearchDate && (
-                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        วันที่นัด: {bookingSearchDate}
-                      </span>
-                    )}
-                    {bookingSearchEmployee && (
-                      <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        เจ้าหน้าที่: {employees.find((e) => e._id === bookingSearchEmployee)?.name || bookingSearchEmployee}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      disabled={bookingsLoading}
-                      onClick={() => {
-                        setBookingSearch("");
-                        setBookingSearchDate("");
-                        setBookingSearchEmployee("");
-                        setBookingPage(1);
-                        fetchBookingsList("", 1, "", "");
-                      }}
-                      className="text-[#C0392B] hover:underline font-bold ml-1 cursor-pointer text-xs"
-                    >
-                      ล้างตัวกรองทั้งหมด
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Bookings Table */}
@@ -1165,14 +1175,14 @@ export default function DashboardPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#EAE0D4]/70 text-[#4A3E37] font-bold border-b border-[#EAE0D4]">
                     <tr>
-                      <th className="py-3 px-4">วันที่นัด</th>
-                      <th className="py-3 px-4">โฉนดที่ดิน</th>
+                      <th className="py-3 px-4">วันที่นัดหมาย</th>
+                      <th className="py-3 px-4">เลขโฉนด</th>
                       <th className="py-3 px-4">ตำบล</th>
-                      <th className="py-3 px-4">เจ้ามรดก</th>
-                      <th className="py-3 px-4">ผู้นัดหมาย</th>
+                      <th className="py-3 px-4">ผู้รับมรดก</th>
+                      <th className="py-3 px-4">ผู้เพิ่มรายการ</th>
                       <th className="py-3 px-4">ค่าธรรมเนียม</th>
                       <th className="py-3 px-4">เจ้าหน้าที่</th>
-                      <th className="py-3 px-4 text-center">จัดการ</th>
+                      <th className="py-3 px-4 text-center">การจัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EAE0D4]/60 bg-white">
@@ -1180,36 +1190,41 @@ export default function DashboardPage() {
                       <tr>
                         <td colSpan={8} className="py-8 text-center text-[#7A695B]">
                           <div className="inline-block w-6 h-6 border-2 border-[#C59B27] border-t-transparent rounded-full animate-spin mb-2" />
-                          <div>กำลังโหลดข้อมูล...</div>
+                          <div>กำลังโหลดรายชื่อการนัดหมาย...</div>
                         </td>
                       </tr>
                     ) : bookings.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-8 text-center text-[#7A695B]">
-                          ไม่พบข้อมูลการนัดหมายการถ่ายโอนมรดกที่ดิน
+                          ไม่พบรายการนัดหมาย
                         </td>
                       </tr>
                     ) : (
                       bookings.map((b) => {
                         const isPast = isPastAppointmentDate(b.appointmentDate);
-                        const isDismissed = dismissedOverdueIds.includes(b._id);
+                        const isOverdueDismissed = dismissedOverdueIds.includes(b._id);
+                        const isDeletedEmp = isDeletedEmployeeBooking(b);
+                        const isDeletedEmpDismissed = dismissedDeletedEmpIds.includes(b._id);
+
+                        let rowClass = "hover:bg-[#FDFAF7]";
+                        if (isPast && !isOverdueDismissed) {
+                          rowClass = "bg-red-50/40 hover:bg-red-50/70 border-l-4 border-l-red-500";
+                        } else if (isDeletedEmp && !isDeletedEmpDismissed) {
+                          rowClass = "bg-amber-50/50 hover:bg-amber-50/80 border-l-4 border-l-amber-500";
+                        } else if (isPast && isOverdueDismissed) {
+                          rowClass = "bg-stone-50/70 hover:bg-stone-100/70 border-l-4 border-l-stone-300";
+                        } else if (isDeletedEmp && isDeletedEmpDismissed) {
+                          rowClass = "bg-stone-50/50 hover:bg-stone-100/50 border-l-4 border-l-stone-200";
+                        }
 
                         return (
-                          <tr
-                            key={b._id}
-                            className={`transition ${isPast
-                              ? isDismissed
-                                ? "bg-stone-50/70 hover:bg-stone-100/70 border-l-4 border-l-stone-300"
-                                : "bg-red-50/40 hover:bg-red-50/70 border-l-4 border-l-red-500"
-                              : "hover:bg-[#FDFAF7]"
-                              }`}
-                          >
+                          <tr key={b._id} className={`transition ${rowClass}`}>
                             <td className="py-3.5 px-4 font-medium text-[#1C3A27]">
                               <div className="flex flex-col gap-1">
                                 <span>{formatDate(b.appointmentDate)}</span>
                                 {isPast && (
                                   <span
-                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${isDismissed
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded w-fit ${isOverdueDismissed
                                       ? "bg-stone-200 text-stone-600 border border-stone-300"
                                       : "bg-red-100 text-red-700 border border-red-200"
                                       }`}
@@ -1219,7 +1234,7 @@ export default function DashboardPage() {
                                       <line x1="12" y1="9" x2="12" y2="13" />
                                       <line x1="12" y1="17" x2="12.01" y2="17" />
                                     </svg>
-                                    {isDismissed ? "เลยกำหนด (ละเว้นแล้ว)" : "เลยกำหนดวันนัด"}
+                                    {isOverdueDismissed ? "เลยกำหนด (ละเว้นแล้ว)" : "เลยกำหนดวันนัด"}
                                   </span>
                                 )}
                               </div>
@@ -1234,7 +1249,33 @@ export default function DashboardPage() {
                               {b.fee?.toLocaleString("th-TH")} บาท
                             </td>
                             <td className="py-3.5 px-4 text-[#4A3E37]">
-                              {b.employee?.name || "-"}
+                              {isDeletedEmp ? (
+                                <div className="flex flex-col gap-1 items-start">
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md border ${isDeletedEmpDismissed
+                                      ? "bg-stone-100 text-stone-600 border-stone-300"
+                                      : "bg-amber-100 text-amber-800 border-amber-300 animate-pulse"
+                                      }`}
+                                    title="เจ้าหน้าที่ผู้รับผิดชอบเดิมถูกลบออกจากระบบ"
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                      <line x1="12" y1="9" x2="12" y2="13" />
+                                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                    {isDeletedEmpDismissed ? "เจ้าหน้าที่ถูกลบ (ละเว้นแล้ว)" : "เจ้าหน้าที่ถูกลบ (ต้องระบุใหม่)"}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditBookingModal(b)}
+                                    className="text-[11px] text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer"
+                                  >
+                                    + ระบุเจ้าหน้าที่ใหม่
+                                  </button>
+                                </div>
+                              ) : (
+                                <span>{b.employee?.name || "-"}</span>
+                              )}
                             </td>
                             <td className="py-3.5 px-4 text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -1260,14 +1301,36 @@ export default function DashboardPage() {
                                 </button>
                                 {isPast && (
                                   <button
-                                    onClick={() => isDismissed ? unDismissOverdue(b._id) : dismissOverdue(b._id)}
-                                    className={`p-1.5 rounded-lg transition cursor-pointer ${isDismissed
+                                    onClick={() => isOverdueDismissed ? unDismissOverdue(b._id) : dismissOverdue(b._id)}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer ${isOverdueDismissed
+                                      ? "text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                                      : "text-red-700 hover:text-red-900 hover:bg-red-100"
+                                      }`}
+                                    title={isOverdueDismissed ? "ยกเลิกการละเว้นเลยกำหนด (Un-dismiss Overdue)" : "ละเว้นการแจ้งเตือนเลยกำหนด (Dismiss Overdue)"}
+                                  >
+                                    {isOverdueDismissed ? (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                      </svg>
+                                    ) : (
+                                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                )}
+                                {isDeletedEmp && (
+                                  <button
+                                    onClick={() => isDeletedEmpDismissed ? unDismissDeletedEmp(b._id) : dismissDeletedEmp(b._id)}
+                                    className={`p-1.5 rounded-lg transition cursor-pointer ${isDeletedEmpDismissed
                                       ? "text-stone-400 hover:text-stone-700 hover:bg-stone-100"
                                       : "text-amber-700 hover:text-amber-900 hover:bg-amber-100"
                                       }`}
-                                    title={isDismissed ? "ยกเลิกการละเว้น (Un-dismiss)" : "ละเว้นการแจ้งเตือน (Dismiss)"}
+                                    title={isDeletedEmpDismissed ? "ยกเลิกการละเว้นเจ้าหน้าที่ถูกลบ (Un-dismiss)" : "ละเว้นการแจ้งเตือนเจ้าหน้าที่ถูกลบ (Dismiss)"}
                                   >
-                                    {isDismissed ? (
+                                    {isDeletedEmpDismissed ? (
                                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                         <circle cx="12" cy="12" r="3" />
@@ -2333,6 +2396,138 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── DELETED EMPLOYEE APPOINTMENTS POPUP MODAL ── */}
+      {isDeletedEmpModalOpen && undismissedDeletedEmpList.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-[#FAF8F5] border-2 border-amber-400/90 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
+            <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="18" y1="8" x2="23" y2="13" />
+                    <line x1="23" y1="8" x2="18" y2="13" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-amber-900 flex items-center gap-2">
+                    แจ้งเตือนรายการนัดหมายที่เจ้าหน้าที่ถูกลบ
+                    <span className="text-xs bg-amber-600 text-white font-extrabold px-2 py-0.5 rounded-full">
+                      {undismissedDeletedEmpList.length}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#7A695B] mt-0.5">
+                    พบรายการนัดหมายที่เจ้าหน้าที่ผู้รับผิดชอบถูกลบออกจากระบบ กรุณามอบหมายเจ้าหน้าที่คนใหม่เพื่อความต่อเนื่องในการให้บริการ
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsDeletedEmpModalOpen(false)}
+                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
+                title="ปิดหน้าต่าง"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {undismissedDeletedEmpList.map((b) => (
+                <div
+                  key={b._id}
+                  className="p-4 bg-white border border-amber-300/80 rounded-xl shadow-xs hover:border-amber-500 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm text-[#1C3A27]">
+                        โฉนดที่ดิน {b.titleDeedNumber}
+                      </span>
+                      <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
+                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-300">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        เจ้าหน้าที่ถูกลบ (ต้องระบุใหม่)
+                      </span>
+                    </div>
+                    <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
+                      <span><strong className="text-[#7A695B]">วันนัดหมาย:</strong> {formatDate(b.appointmentDate)}</span>
+                      <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
+                      <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
+                    <button
+                      onClick={() => {
+                        setIsDeletedEmpModalOpen(false);
+                        openEditBookingModal(b);
+                      }}
+                      className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      title="ระบุหรือมอบหมายเจ้าหน้าที่ใหม่"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                      </svg>
+                      <span>มอบหมาย (Reassign)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsDeletedEmpModalOpen(false);
+                        startCountdown("booking", b._id, b.titleDeedNumber);
+                      }}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      title="ลบรายการนัดหมาย"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                      <span>ลบ (Delete)</span>
+                    </button>
+                    <button
+                      onClick={() => dismissDeletedEmp(b._id)}
+                      className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                      title="ละเว้นการแจ้งเตือนนี้"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      <span>ละเว้น (Dismiss)</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
+              <button
+                onClick={() => dismissAllDeletedEmp(undismissedDeletedEmpList.map((x) => x._id))}
+                className="text-amber-800 hover:text-amber-900 font-bold underline cursor-pointer"
+              >
+                ละเว้นทั้งหมด ({undismissedDeletedEmpList.length} รายการ)
+              </button>
+              <button
+                onClick={() => setIsDeletedEmpModalOpen(false)}
+                className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
+              >
+                ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* ── Footer ── */}
       <footer className="py-4 text-center text-xs text-[#7A695B] border-t border-[#EAE0D4] mt-auto">
