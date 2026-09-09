@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-const buttonClass = "w-full sm:w-56 max-w-full justify-center px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 shadow-sm";
+const buttonClass = "w-full sm:w-56 max-w-full justify-center px-4 py-2.5 text-l font-bold rounded-xl transition flex items-center gap-2 shadow-sm";
 
 export default function TopMenuButton() {
   const pathname = usePathname();
   const { user, isLoading: authLoading } = useAuth();
 
   if (authLoading) {
-    return <p className="w-full sm:w-56 max-w-full text-center text-sm">loading...</p>;
+    return <p className="w-full sm:w-56 max-w-full text-center text-l text-[#EAE0D4] font-bold">loading...</p>;
   }
 
   if(pathname == '/dashboard' || pathname == '/login'){
