@@ -1033,6 +1033,8 @@ export default function DashboardPage() {
                     </div>
                     <input
                       type="text"
+                      inputMode="text"
+                      enterKeyHint="search"
                       value={bookingSearch}
                       disabled={bookingsLoading}
                       onChange={(e) => {
@@ -1041,6 +1043,12 @@ export default function DashboardPage() {
                         if (!value.trim()) {
                           setBookingPage(1);
                           fetchBookingsList("", 1, bookingSearchDate, bookingSearchEmployee);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          submitBookingSearch();
                         }
                       }}
                       placeholder="เลขโฉนดที่ดิน..."
