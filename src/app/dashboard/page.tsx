@@ -875,7 +875,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Top Navigation Bar ── */}
-      
+
 
       {/* ── Main Container with Sidebar ── */}
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col md:flex-row gap-6">
@@ -1108,6 +1108,73 @@ export default function DashboardPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* 3. Filter by Employee */}
+                  <div className="md:col-span-3 relative">
+                    <select
+                      value={bookingSearchEmployee}
+                      disabled={bookingsLoading}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setBookingSearchEmployee(value);
+                        setBookingPage(1);
+                        fetchBookingsList(bookingSearch, 1, bookingSearchDate, value);
+                      }}
+                      className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
+                    >
+                      <option value="">— เจ้าหน้าที่ทั้งหมด —</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={bookingsLoading}
+                    onClick={() => submitBookingSearch()}
+                    className="px-4 py-2 bg-[#C59B27] hover:bg-[#A8832A] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    ค้นหา
+                  </button>
+
+                  {/* Active Filter Indicators / Clear All button */}
+                  {(bookingSearch || bookingSearchDate || bookingSearchEmployee) && (
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-[#7A695B]">
+                      <span className="font-semibold">ตัวกรอง:</span>
+                      {bookingSearch && (
+                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                          คำค้นหา: &quot;{bookingSearch}&quot;
+                        </span>
+                      )}
+                      {bookingSearchDate && (
+                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                          วันที่นัด: {bookingSearchDate}
+                        </span>
+                      )}
+                      {bookingSearchEmployee && (
+                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
+                          เจ้าหน้าที่: {employees.find((e) => e._id === bookingSearchEmployee)?.name || bookingSearchEmployee}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        disabled={bookingsLoading}
+                        onClick={() => {
+                          setBookingSearch("");
+                          setBookingSearchDate("");
+                          setBookingSearchEmployee("");
+                          setBookingPage(1);
+                          fetchBookingsList("", 1, "", "");
+                        }}
+                        className="text-[#C0392B] hover:underline font-bold ml-1 cursor-pointer text-xs"
+                      >
+                        ล้างตัวกรองทั้งหมด
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
