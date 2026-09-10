@@ -238,10 +238,6 @@ export default function ResetPasswordPage() {
         </div>
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="py-6 text-center text-xs text-[#7A695B] border-t border-[#EAE0D4]">
-        ระบบตรวจสอบนัดโอนมรดกที่ดิน · LandQ Official Management System © 2026
-      </footer>
     </div>
   );
 }

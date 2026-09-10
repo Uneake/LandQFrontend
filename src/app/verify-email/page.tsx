@@ -181,15 +181,6 @@ function VerifyEmailContent() {
         )}
       </div>
 
-      {/* Official Footer */}
-      <footer className="relative z-10 mt-8 text-center flex flex-col gap-1">
-        <span className="text-[0.72rem] font-bold uppercase tracking-[0.1em] text-[#C59B27]">
-          LandQ Government &amp; Public Administration System
-        </span>
-        <span className="text-[0.72rem] text-[#8A7B70]">
-          Confidential &amp; Secured Official Service · All Rights Reserved
-        </span>
-      </footer>
 
       {/* Keyframe styles */}
       <style>{`

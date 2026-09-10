@@ -3,6 +3,7 @@ import { Prompt } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import TopMenu from "@/components/TopMenu";
+import Footer from "@/components/Footer";
 
 const prompt = Prompt({
   weight: ["300", "400", "500", "600", "700"],
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AuthProvider>
           <TopMenu/>
           {children}
+          <Footer/>
         </AuthProvider>
       </body>
     </html>

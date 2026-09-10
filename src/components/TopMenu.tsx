@@ -29,7 +29,7 @@ export default function TopMenu(){
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex flex-col">
                   <h1 className="text-white font-bold text-lg leading-tight tracking-wide">
-                    LandQ
+                    สำนักงานที่ดินจังหวัดลำปาง สาขาเถิน
                   </h1>
                   <p className="text-[#C59B27] text-xs font-semibold tracking-widest uppercase">
                     ระบบตรวจสอบนัดโอนมรดกที่ดิน
