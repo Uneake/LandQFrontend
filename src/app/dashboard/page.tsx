@@ -1142,38 +1142,21 @@ export default function DashboardPage() {
 
                   {/* Active Filter Indicators / Clear All button */}
                   {(bookingSearch || bookingSearchDate || bookingSearchEmployee) && (
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-[#7A695B]">
-                      <span className="font-semibold">ตัวกรอง:</span>
-                      {bookingSearch && (
-                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                          คำค้นหา: &quot;{bookingSearch}&quot;
-                        </span>
-                      )}
-                      {bookingSearchDate && (
-                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                          วันที่นัด: {bookingSearchDate}
-                        </span>
-                      )}
-                      {bookingSearchEmployee && (
-                        <span className="bg-[#EAE0D4] text-[#4A3E37] px-2 py-0.5 rounded-lg flex items-center gap-1">
-                          เจ้าหน้าที่: {employees.find((e) => e._id === bookingSearchEmployee)?.name || bookingSearchEmployee}
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        disabled={bookingsLoading}
-                        onClick={() => {
-                          setBookingSearch("");
-                          setBookingSearchDate("");
-                          setBookingSearchEmployee("");
-                          setBookingPage(1);
-                          fetchBookingsList("", 1, "", "");
-                        }}
-                        className="text-[#C0392B] hover:underline font-bold ml-1 cursor-pointer text-xs"
-                      >
-                        ล้างตัวกรองทั้งหมด
-                      </button>
-                    </div>
+
+                    <button
+                      type="button"
+                      disabled={bookingsLoading}
+                      onClick={() => {
+                        setBookingSearch("");
+                        setBookingSearchDate("");
+                        setBookingSearchEmployee("");
+                        setBookingPage(1);
+                        fetchBookingsList("", 1, "", "");
+                      }}
+                      className="text-[#C0392B] hover:underline font-bold ml-1 cursor-pointer text-xs"
+                    >
+                      ล้างตัวกรองทั้งหมด
+                    </button>
                   )}
                 </div>
               </div>
@@ -1792,755 +1775,769 @@ export default function DashboardPage() {
             </div>
           )}
         </main>
-      </div>
+      </div >
 
       {/* ── COUNTDOWN CONFIRMATION MODAL ── */}
-      {countdown.active && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F5] border-2 border-[#C0392B] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scale-up">
-            <div className="flex items-center gap-3 text-[#C0392B]">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-base">ยืนยันการลบข้อมูล</h3>
-                <p className="text-xs text-[#7A695B]">
-                  {countdown.type === "booking" && `ลบรายการนัดหมายโฉนด: ${countdown.targetName}`}
-                  {countdown.type === "admin" && `ลบผู้ดูแลระบบ: ${countdown.targetName}`}
-                  {countdown.type === "account" && `ลบบัญชีผู้ใช้ของคุณถาวร`}
-                </p>
-              </div>
-            </div>
-
-            {/* Countdown Box */}
-            {countdown.timerRef ? (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-3">
-                <div className="text-4xl font-extrabold text-[#C0392B] animate-pulse">
-                  {countdown.secondsLeft}
-                </div>
-                <p className="text-xs text-[#7A3020] font-semibold">
-                  ระบบกำลังจะดำเนินการลบข้อมูลใน {countdown.secondsLeft} วินาที...
-                </p>
-                <p className="text-[11px] text-[#7A695B]">
-                  ท่านสามารถกดยกเลิกได้ตลอดเวลาระหว่างนับถอยหลัง
-                </p>
-                <button
-                  onClick={cancelCountdown}
-                  className="w-full py-2.5 px-4 bg-white border-2 border-[#1C3A27] text-[#1C3A27] hover:bg-[#1C3A27] hover:text-white font-bold text-xs rounded-xl transition cursor-pointer"
-                >
-                  ยกเลิกทันที (Cancel)
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-xs text-[#4A3E37] leading-relaxed">
-                  เมื่อคุณกด &quot;ยืนยันการลบ&quot; ระบบจะเริ่มนับถอยหลัง 5 วินาที
-                  เพื่อให้คุณมีเวลายืนยันหรือยกเลิกการกระทำนี้
-                </p>
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={cancelCountdown}
-                    className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    onClick={triggerCountdownTimer}
-                    className="px-4 py-2 bg-[#C0392B] hover:bg-[#962D22] text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer"
-                  >
-                    ยืนยันการลบ (เริ่มนับ 5 วินาที)
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── CREATE / EDIT BOOKING MODAL ── */}
-      {isBookingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-xl w-full shadow-2xl my-8">
-            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
-              <h3 className="font-bold text-lg text-[#1C3A27]">
-                {editingBooking ? "แก้ไขรายการนัดหมาย" : "เพิ่มรายการนัดหมายใหม่"}
-              </h3>
-              <button
-                onClick={() => {
-                  setIsBookingModalOpen(false);
-                  setShowInlineEmpForm(false);
-                }}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    วันที่นัดหมาย (Appointment Date) *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    min={getTodayISODate()}
-                    value={toISODate(bookingForm.appointmentDate) || bookingForm.appointmentDate}
-                    onChange={(e) => setBookingForm({ ...bookingForm, appointmentDate: e.target.value })}
-                    onClick={(e) => {
-                      try {
-                        (e.target as HTMLInputElement).showPicker?.();
-                      } catch { }
-                    }}
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
-                  />
-                  <p className="text-[10px] text-[#7A695B] mt-1">
-                    * เลือกได้เฉพาะวันนัดหมายตั้งแต่วันนี้เป็นต้นไป (ไม่สามารถเลือกวันในอดีตได้)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    เลขที่โฉนดที่ดิน (Title Deed No.) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingForm.titleDeedNumber}
-                    onChange={(e) => setBookingForm({ ...bookingForm, titleDeedNumber: e.target.value })}
-                    placeholder="เช่น 12345"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    ตำบล (Sub-district) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingForm.subDistrict}
-                    onChange={(e) => setBookingForm({ ...bookingForm, subDistrict: e.target.value })}
-                    placeholder="เช่น ในเมือง"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    เจ้ามรดก
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingForm.heir}
-                    onChange={(e) => setBookingForm({ ...bookingForm, heir: e.target.value })}
-                    placeholder="ชื่อ-นามสกุล เจ้ามรดก"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    ผู้นัดหมาย (Appointed By) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={bookingForm.appointedBy}
-                    onChange={(e) => setBookingForm({ ...bookingForm, appointedBy: e.target.value })}
-                    placeholder="ชื่อ-นามสกุล ผู้นัดหมาย"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    ค่าธรรมเนียม (Fee - บาท) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={0}
-                    value={bookingForm.fee}
-                    onChange={(e) => setBookingForm({ ...bookingForm, fee: Number(e.target.value) })}
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    วันที่จดทะเบียน (Registration Date)
-                  </label>
-                  <input
-                    type="text"
-                    value={bookingForm.registrationDate}
-                    onChange={(e) => setBookingForm({ ...bookingForm, registrationDate: e.target.value })}
-                    placeholder="เช่น 1 มกราคม 2567"
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-[#4A3E37] mb-1">
-                    เจ้าหน้าที่ผู้รับผิดชอบ (Officer) *
-                  </label>
-                  <select
-                    required
-                    value={bookingForm.employee}
-                    onChange={(e) => {
-                      if (e.target.value === "__add_new__") {
-                        setShowInlineEmpForm(true);
-                        setInlineEmpForm({ name: "", tel: "" });
-                      } else {
-                        setBookingForm({ ...bookingForm, employee: e.target.value });
-                      }
-                    }}
-                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                  >
-                    <option value="">— เลือกเจ้าหน้าที่ —</option>
-                    {employees.map((emp) => (
-                      <option key={emp._id} value={emp._id}>
-                        {emp.name} {emp.tel ? `(${emp.tel})` : ""}
-                      </option>
-                    ))}
-                    <option value="__add_new__">✚ เพิ่มเจ้าหน้าที่ใหม่...</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsBookingModalOpen(false);
-                    setShowInlineEmpForm(false);
-                  }}
-                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={bookingModalLoading}
-                  className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
-                >
-                  {bookingModalLoading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showInlineEmpForm && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
-              <h3 className="font-bold text-lg text-[#1C3A27]">เพิ่มเจ้าหน้าที่ใหม่</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowInlineEmpForm(false);
-                  setInlineEmpForm({ name: "", tel: "" });
-                }}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
-                title="ยกเลิก"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleInlineAddEmployee} className="space-y-3">
-              <input
-                autoFocus
-                type="text"
-                maxLength={200}
-                required
-                value={inlineEmpForm.name}
-                onChange={(e) => setInlineEmpForm((p) => ({ ...p, name: e.target.value }))}
-                placeholder="ชื่อ-นามสกุล เจ้าหน้าที่ *"
-                className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-              />
-              <input
-                type="tel"
-                value={inlineEmpForm.tel}
-                onChange={(e) => setInlineEmpForm((p) => ({ ...p, tel: e.target.value }))}
-                placeholder="เบอร์โทรศัพท์ (ไม่บังคับ)"
-                className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-              />
-              <div className="flex gap-3 justify-end pt-3">
-                <button
-                  type="button"
-                  disabled={inlineEmpLoading}
-                  onClick={() => {
-                    setShowInlineEmpForm(false);
-                    setInlineEmpForm({ name: "", tel: "" });
-                  }}
-                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={inlineEmpLoading}
-                  className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
-                >
-                  {inlineEmpLoading ? "กำลังเพิ่ม..." : "เพิ่มเจ้าหน้าที่"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── CREATE ADMIN MODAL (super_admin) ── */}
-      {isAdminModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
-              <h3 className="font-bold text-lg text-[#1C3A27]">
-                เพิ่มผู้ดูแลระบบ (Create Admin)
-              </h3>
-              <button
-                onClick={() => setIsAdminModalOpen(false)}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleAdminCreateSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  ชื่อผู้ใช้ (Username) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  minLength={3}
-                  value={adminForm.username}
-                  onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value })}
-                  placeholder="เช่น admin_somchai"
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  อีเมล (Email) *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={adminForm.email}
-                  onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
-                  placeholder="admin@landq.com"
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  รหัสผ่านเริ่มต้น (Password) *
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={adminForm.password}
-                  onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
-                  placeholder="อย่างน้อย 8 ตัวอักษร"
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  ระดับสิทธิ์ (Role)
-                </label>
-                <select
-                  value={adminForm.role}
-                  onChange={(e) => setAdminForm({ ...adminForm, role: e.target.value as "admin" | "super_admin" })}
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                >
-                  <option value="admin">Admin (ผู้ดูแลระบบทั่วไป)</option>
-                  <option value="super_admin">Super Admin (ผู้ดูแลระบบสูงสุด)</option>
-                </select>
-              </div>
-
-              <p className="text-[10px] text-[#7A695B]">
-                * เมื่อสร้างบัญชีแล้ว ระบบจะส่งอีเมลยืนยันตัวตนไปยังอีเมลที่ระบุ เพื่อให้ผู้ดูแลเปิดใช้งานบัญชี
-              </p>
-
-              <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
-                <button
-                  type="button"
-                  onClick={() => setIsAdminModalOpen(false)}
-                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={adminModalLoading}
-                  className="px-5 py-2 bg-[#C59B27] hover:bg-[#A8832A] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
-                >
-                  {adminModalLoading ? "กำลังสร้าง..." : "สร้างบัญชีแอดมิน"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── EMPLOYEE ADD/EDIT MODAL ── */}
-      {isEmployeeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
-              <h3 className="font-bold text-lg text-[#1C3A27]">
-                {editingEmployee ? "แก้ไขข้อมูลเจ้าหน้าที่" : "เพิ่มเจ้าหน้าที่ใหม่"}
-              </h3>
-              <button
-                onClick={() => setIsEmployeeModalOpen(false)}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleEmployeeSubmit} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  ชื่อเจ้าหน้าที่ (Name) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={200}
-                  value={employeeForm.name}
-                  onChange={(e) => setEmployeeForm({ ...employeeForm, name: e.target.value })}
-                  placeholder="กรอกชื่อ-นามสกุลเจ้าหน้าที่"
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-[#4A3E37] mb-1">
-                  เบอร์โทรศัพท์ (Tel)
-                </label>
-                <input
-                  type="tel"
-                  value={employeeForm.tel ?? ""}
-                  onChange={(e) => setEmployeeForm({ ...employeeForm, tel: e.target.value })}
-                  placeholder="เช่น 081-234-5678 (ไม่บังคับ)"
-                  className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
-                <button
-                  type="button"
-                  onClick={() => setIsEmployeeModalOpen(false)}
-                  className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
-                >
-                  ยกเลิก
-                </button>
-                <button
-                  type="submit"
-                  disabled={employeeModalLoading}
-                  className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
-                >
-                  {employeeModalLoading ? "กำลังบันทึก..." : editingEmployee ? "บันทึกการแก้ไข" : "เพิ่มเจ้าหน้าที่"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── OVERDUE APPOINTMENTS POPUP MODAL ── */}
-      {isOverdueModalOpen && undismissedOverdueList.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] border-2 border-red-400/80 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
-            <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0 text-red-600">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      {
+        countdown.active && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+            <div className="bg-[#FAF8F5] border-2 border-[#C0392B] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-scale-up">
+              <div className="flex items-center gap-3 text-[#C0392B]">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-red-800 flex items-center gap-2">
-                    แจ้งเตือนรายการนัดหมายที่เลยกำหนดวันนัด
-                    <span className="text-xs bg-red-600 text-white font-extrabold px-2 py-0.5 rounded-full">
-                      {undismissedOverdueList.length}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-[#7A695B] mt-0.5">
-                    พบรายการนัดหมายที่ผ่านกำหนดวันนัดแล้ว ท่านสามารถเลือก แก้ไขวันนัด, ลบรายการ หรือ ละเว้นการแจ้งเตือนได้
+                  <h3 className="font-bold text-base">ยืนยันการลบข้อมูล</h3>
+                  <p className="text-xs text-[#7A695B]">
+                    {countdown.type === "booking" && `ลบรายการนัดหมายโฉนด: ${countdown.targetName}`}
+                    {countdown.type === "admin" && `ลบผู้ดูแลระบบ: ${countdown.targetName}`}
+                    {countdown.type === "account" && `ลบบัญชีผู้ใช้ของคุณถาวร`}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOverdueModalOpen(false)}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
-                title="ปิดหน้าต่าง"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
 
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              {undismissedOverdueList.map((b) => (
-                <div
-                  key={b._id}
-                  className="p-4 bg-white border border-red-200 rounded-xl shadow-xs hover:border-red-400 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-[#1C3A27]">
-                        โฉนดที่ดิน {b.titleDeedNumber}
-                      </span>
-                      <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
-                      <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-red-200">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="8" x2="12" y2="12" />
-                          <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        เลยกำหนดนัด: {formatDate(b.appointmentDate)}
-                      </span>
-                    </div>
-                    <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
-                      <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
-                      <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
-                      <span><strong className="text-[#7A695B]">เจ้าหน้าที่:</strong> {b.employee?.name || "-"}</span>
-                    </div>
+              {/* Countdown Box */}
+              {countdown.timerRef ? (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-3">
+                  <div className="text-4xl font-extrabold text-[#C0392B] animate-pulse">
+                    {countdown.secondsLeft}
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
+                  <p className="text-xs text-[#7A3020] font-semibold">
+                    ระบบกำลังจะดำเนินการลบข้อมูลใน {countdown.secondsLeft} วินาที...
+                  </p>
+                  <p className="text-[11px] text-[#7A695B]">
+                    ท่านสามารถกดยกเลิกได้ตลอดเวลาระหว่างนับถอยหลัง
+                  </p>
+                  <button
+                    onClick={cancelCountdown}
+                    className="w-full py-2.5 px-4 bg-white border-2 border-[#1C3A27] text-[#1C3A27] hover:bg-[#1C3A27] hover:text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                  >
+                    ยกเลิกทันที (Cancel)
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs text-[#4A3E37] leading-relaxed">
+                    เมื่อคุณกด &quot;ยืนยันการลบ&quot; ระบบจะเริ่มนับถอยหลัง 5 วินาที
+                    เพื่อให้คุณมีเวลายืนยันหรือยกเลิกการกระทำนี้
+                  </p>
+                  <div className="flex gap-3 justify-end">
                     <button
-                      onClick={() => {
-                        setIsOverdueModalOpen(false);
-                        openEditBookingModal(b);
-                      }}
-                      className="px-3 py-1.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      title="แก้ไขรายการนัดหมาย"
+                      onClick={cancelCountdown}
+                      className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                      <span>แก้ไข (Edit)</span>
+                      ยกเลิก
                     </button>
                     <button
-                      onClick={() => {
-                        setIsOverdueModalOpen(false);
-                        startCountdown("booking", b._id, b.titleDeedNumber);
-                      }}
-                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      title="ลบรายการนัดหมาย"
+                      onClick={triggerCountdownTimer}
+                      className="px-4 py-2 bg-[#C0392B] hover:bg-[#962D22] text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer"
                     >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                      <span>ลบ (Delete)</span>
-                    </button>
-                    <button
-                      onClick={() => dismissOverdue(b._id)}
-                      className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
-                      title="ละเว้นการแจ้งเตือนนี้"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                      <span>ละเว้น (Dismiss)</span>
+                      ยืนยันการลบ (เริ่มนับ 5 วินาที)
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
-              <button
-                onClick={() => dismissAllOverdue(undismissedOverdueList.map((x) => x._id))}
-                className="text-[#7A3020] hover:text-red-700 font-bold underline cursor-pointer"
-              >
-                ละเว้นทั้งหมด ({undismissedOverdueList.length} รายการ)
-              </button>
-              <button
-                onClick={() => setIsOverdueModalOpen(false)}
-                className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
-              >
-                ปิดหน้าต่าง
-              </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
+
+      {/* ── CREATE / EDIT BOOKING MODAL ── */}
+      {
+        isBookingModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
+            <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-xl w-full shadow-2xl my-8">
+              <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+                <h3 className="font-bold text-lg text-[#1C3A27]">
+                  {editingBooking ? "แก้ไขรายการนัดหมาย" : "เพิ่มรายการนัดหมายใหม่"}
+                </h3>
+                <button
+                  onClick={() => {
+                    setIsBookingModalOpen(false);
+                    setShowInlineEmpForm(false);
+                  }}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleBookingSubmit} className="space-y-4 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      วันที่นัดหมาย (Appointment Date) *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      min={getTodayISODate()}
+                      value={toISODate(bookingForm.appointmentDate) || bookingForm.appointmentDate}
+                      onChange={(e) => setBookingForm({ ...bookingForm, appointmentDate: e.target.value })}
+                      onClick={(e) => {
+                        try {
+                          (e.target as HTMLInputElement).showPicker?.();
+                        } catch { }
+                      }}
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27] cursor-pointer"
+                    />
+                    <p className="text-[10px] text-[#7A695B] mt-1">
+                      * เลือกได้เฉพาะวันนัดหมายตั้งแต่วันนี้เป็นต้นไป (ไม่สามารถเลือกวันในอดีตได้)
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      เลขที่โฉนดที่ดิน (Title Deed No.) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingForm.titleDeedNumber}
+                      onChange={(e) => setBookingForm({ ...bookingForm, titleDeedNumber: e.target.value })}
+                      placeholder="เช่น 12345"
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      ตำบล (Sub-district) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingForm.subDistrict}
+                      onChange={(e) => setBookingForm({ ...bookingForm, subDistrict: e.target.value })}
+                      placeholder="เช่น ในเมือง"
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      เจ้ามรดก
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingForm.heir}
+                      onChange={(e) => setBookingForm({ ...bookingForm, heir: e.target.value })}
+                      placeholder="ชื่อ-นามสกุล เจ้ามรดก"
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      ผู้นัดหมาย (Appointed By) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={bookingForm.appointedBy}
+                      onChange={(e) => setBookingForm({ ...bookingForm, appointedBy: e.target.value })}
+                      placeholder="ชื่อ-นามสกุล ผู้นัดหมาย"
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      ค่าธรรมเนียม (Fee - บาท) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={bookingForm.fee}
+                      onChange={(e) => setBookingForm({ ...bookingForm, fee: Number(e.target.value) })}
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      วันที่จดทะเบียน (Registration Date)
+                    </label>
+                    <input
+                      type="text"
+                      value={bookingForm.registrationDate}
+                      onChange={(e) => setBookingForm({ ...bookingForm, registrationDate: e.target.value })}
+                      placeholder="เช่น 1 มกราคม 2567"
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-[#4A3E37] mb-1">
+                      เจ้าหน้าที่ผู้รับผิดชอบ (Officer) *
+                    </label>
+                    <select
+                      required
+                      value={bookingForm.employee}
+                      onChange={(e) => {
+                        if (e.target.value === "__add_new__") {
+                          setShowInlineEmpForm(true);
+                          setInlineEmpForm({ name: "", tel: "" });
+                        } else {
+                          setBookingForm({ ...bookingForm, employee: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                    >
+                      <option value="">— เลือกเจ้าหน้าที่ —</option>
+                      {employees.map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.name} {emp.tel ? `(${emp.tel})` : ""}
+                        </option>
+                      ))}
+                      <option value="__add_new__">✚ เพิ่มเจ้าหน้าที่ใหม่...</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBookingModalOpen(false);
+                      setShowInlineEmpForm(false);
+                    }}
+                    className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={bookingModalLoading}
+                    className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {bookingModalLoading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        showInlineEmpForm && (
+          <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+            <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+                <h3 className="font-bold text-lg text-[#1C3A27]">เพิ่มเจ้าหน้าที่ใหม่</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInlineEmpForm(false);
+                    setInlineEmpForm({ name: "", tel: "" });
+                  }}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
+                  title="ยกเลิก"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleInlineAddEmployee} className="space-y-3">
+                <input
+                  autoFocus
+                  type="text"
+                  maxLength={200}
+                  required
+                  value={inlineEmpForm.name}
+                  onChange={(e) => setInlineEmpForm((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="ชื่อ-นามสกุล เจ้าหน้าที่ *"
+                  className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                />
+                <input
+                  type="tel"
+                  value={inlineEmpForm.tel}
+                  onChange={(e) => setInlineEmpForm((p) => ({ ...p, tel: e.target.value }))}
+                  placeholder="เบอร์โทรศัพท์ (ไม่บังคับ)"
+                  className="w-full px-3 py-2.5 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                />
+                <div className="flex gap-3 justify-end pt-3">
+                  <button
+                    type="button"
+                    disabled={inlineEmpLoading}
+                    onClick={() => {
+                      setShowInlineEmpForm(false);
+                      setInlineEmpForm({ name: "", tel: "" });
+                    }}
+                    className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inlineEmpLoading}
+                    className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {inlineEmpLoading ? "กำลังเพิ่ม..." : "เพิ่มเจ้าหน้าที่"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* ── CREATE ADMIN MODAL (super_admin) ── */}
+      {
+        isAdminModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+            <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+                <h3 className="font-bold text-lg text-[#1C3A27]">
+                  เพิ่มผู้ดูแลระบบ (Create Admin)
+                </h3>
+                <button
+                  onClick={() => setIsAdminModalOpen(false)}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleAdminCreateSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    ชื่อผู้ใช้ (Username) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    minLength={3}
+                    value={adminForm.username}
+                    onChange={(e) => setAdminForm({ ...adminForm, username: e.target.value })}
+                    placeholder="เช่น admin_somchai"
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    อีเมล (Email) *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={adminForm.email}
+                    onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                    placeholder="admin@landq.com"
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    รหัสผ่านเริ่มต้น (Password) *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={adminForm.password}
+                    onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                    placeholder="อย่างน้อย 8 ตัวอักษร"
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    ระดับสิทธิ์ (Role)
+                  </label>
+                  <select
+                    value={adminForm.role}
+                    onChange={(e) => setAdminForm({ ...adminForm, role: e.target.value as "admin" | "super_admin" })}
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  >
+                    <option value="admin">Admin (ผู้ดูแลระบบทั่วไป)</option>
+                    <option value="super_admin">Super Admin (ผู้ดูแลระบบสูงสุด)</option>
+                  </select>
+                </div>
+
+                <p className="text-[10px] text-[#7A695B]">
+                  * เมื่อสร้างบัญชีแล้ว ระบบจะส่งอีเมลยืนยันตัวตนไปยังอีเมลที่ระบุ เพื่อให้ผู้ดูแลเปิดใช้งานบัญชี
+                </p>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdminModalOpen(false)}
+                    className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={adminModalLoading}
+                    className="px-5 py-2 bg-[#C59B27] hover:bg-[#A8832A] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {adminModalLoading ? "กำลังสร้าง..." : "สร้างบัญชีแอดมิน"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* ── EMPLOYEE ADD/EDIT MODAL ── */}
+      {
+        isEmployeeModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+            <div className="bg-[#FAF8F5] border border-[#C59B27]/40 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+              <div className="flex items-center justify-between mb-4 border-b border-[#EAE0D4] pb-3">
+                <h3 className="font-bold text-lg text-[#1C3A27]">
+                  {editingEmployee ? "แก้ไขข้อมูลเจ้าหน้าที่" : "เพิ่มเจ้าหน้าที่ใหม่"}
+                </h3>
+                <button
+                  onClick={() => setIsEmployeeModalOpen(false)}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg cursor-pointer"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleEmployeeSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    ชื่อเจ้าหน้าที่ (Name) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={200}
+                    value={employeeForm.name}
+                    onChange={(e) => setEmployeeForm({ ...employeeForm, name: e.target.value })}
+                    placeholder="กรอกชื่อ-นามสกุลเจ้าหน้าที่"
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-[#4A3E37] mb-1">
+                    เบอร์โทรศัพท์ (Tel)
+                  </label>
+                  <input
+                    type="tel"
+                    value={employeeForm.tel ?? ""}
+                    onChange={(e) => setEmployeeForm({ ...employeeForm, tel: e.target.value })}
+                    placeholder="เช่น 081-234-5678 (ไม่บังคับ)"
+                    className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t border-[#EAE0D4]">
+                  <button
+                    type="button"
+                    onClick={() => setIsEmployeeModalOpen(false)}
+                    className="px-4 py-2 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={employeeModalLoading}
+                    className="px-5 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                  >
+                    {employeeModalLoading ? "กำลังบันทึก..." : editingEmployee ? "บันทึกการแก้ไข" : "เพิ่มเจ้าหน้าที่"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* ── OVERDUE APPOINTMENTS POPUP MODAL ── */}
+      {
+        isOverdueModalOpen && undismissedOverdueList.length > 0 && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+            <div className="bg-[#FAF8F5] border-2 border-red-400/80 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
+              <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center shrink-0 text-red-600">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-red-800 flex items-center gap-2">
+                      แจ้งเตือนรายการนัดหมายที่เลยกำหนดวันนัด
+                      <span className="text-xs bg-red-600 text-white font-extrabold px-2 py-0.5 rounded-full">
+                        {undismissedOverdueList.length}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#7A695B] mt-0.5">
+                      พบรายการนัดหมายที่ผ่านกำหนดวันนัดแล้ว ท่านสามารถเลือก แก้ไขวันนัด, ลบรายการ หรือ ละเว้นการแจ้งเตือนได้
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsOverdueModalOpen(false)}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
+                  title="ปิดหน้าต่าง"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                {undismissedOverdueList.map((b) => (
+                  <div
+                    key={b._id}
+                    className="p-4 bg-white border border-red-200 rounded-xl shadow-xs hover:border-red-400 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-[#1C3A27]">
+                          โฉนดที่ดิน {b.titleDeedNumber}
+                        </span>
+                        <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
+                        <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-red-200">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                          เลยกำหนดนัด: {formatDate(b.appointmentDate)}
+                        </span>
+                      </div>
+                      <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
+                        <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
+                        <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
+                        <span><strong className="text-[#7A695B]">เจ้าหน้าที่:</strong> {b.employee?.name || "-"}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
+                      <button
+                        onClick={() => {
+                          setIsOverdueModalOpen(false);
+                          openEditBookingModal(b);
+                        }}
+                        className="px-3 py-1.5 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="แก้ไขรายการนัดหมาย"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        <span>แก้ไข (Edit)</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsOverdueModalOpen(false);
+                          startCountdown("booking", b._id, b.titleDeedNumber);
+                        }}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="ลบรายการนัดหมาย"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        <span>ลบ (Delete)</span>
+                      </button>
+                      <button
+                        onClick={() => dismissOverdue(b._id)}
+                        className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                        title="ละเว้นการแจ้งเตือนนี้"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        <span>ละเว้น (Dismiss)</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
+                <button
+                  onClick={() => dismissAllOverdue(undismissedOverdueList.map((x) => x._id))}
+                  className="text-[#7A3020] hover:text-red-700 font-bold underline cursor-pointer"
+                >
+                  ละเว้นทั้งหมด ({undismissedOverdueList.length} รายการ)
+                </button>
+                <button
+                  onClick={() => setIsOverdueModalOpen(false)}
+                  className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
+                >
+                  ปิดหน้าต่าง
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       {/* ── DELETED EMPLOYEE APPOINTMENTS POPUP MODAL ── */}
-      {isDeletedEmpModalOpen && undismissedDeletedEmpList.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-[#FAF8F5] border-2 border-amber-400/90 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
-            <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="8.5" cy="7" r="4" />
-                    <line x1="18" y1="8" x2="23" y2="13" />
-                    <line x1="23" y1="8" x2="18" y2="13" />
-                  </svg>
+      {
+        isDeletedEmpModalOpen && undismissedDeletedEmpList.length > 0 && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+            <div className="bg-[#FAF8F5] border-2 border-amber-400/90 rounded-2xl p-6 max-w-2xl w-full shadow-2xl my-8 space-y-5 animate-scale-up">
+              <div className="flex items-start justify-between border-b border-[#EAE0D4] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 text-amber-700">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="8.5" cy="7" r="4" />
+                      <line x1="18" y1="8" x2="23" y2="13" />
+                      <line x1="23" y1="8" x2="18" y2="13" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-amber-900 flex items-center gap-2">
+                      แจ้งเตือนรายการนัดหมายที่เจ้าหน้าที่ถูกลบ
+                      <span className="text-xs bg-amber-600 text-white font-extrabold px-2 py-0.5 rounded-full">
+                        {undismissedDeletedEmpList.length}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#7A695B] mt-0.5">
+                      พบรายการนัดหมายที่เจ้าหน้าที่ผู้รับผิดชอบถูกลบออกจากระบบ กรุณามอบหมายเจ้าหน้าที่คนใหม่เพื่อความต่อเนื่องในการให้บริการ
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-base text-amber-900 flex items-center gap-2">
-                    แจ้งเตือนรายการนัดหมายที่เจ้าหน้าที่ถูกลบ
-                    <span className="text-xs bg-amber-600 text-white font-extrabold px-2 py-0.5 rounded-full">
-                      {undismissedDeletedEmpList.length}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-[#7A695B] mt-0.5">
-                    พบรายการนัดหมายที่เจ้าหน้าที่ผู้รับผิดชอบถูกลบออกจากระบบ กรุณามอบหมายเจ้าหน้าที่คนใหม่เพื่อความต่อเนื่องในการให้บริการ
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsDeletedEmpModalOpen(false)}
-                className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
-                title="ปิดหน้าต่าง"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              {undismissedDeletedEmpList.map((b) => (
-                <div
-                  key={b._id}
-                  className="p-4 bg-white border border-amber-300/80 rounded-xl shadow-xs hover:border-amber-500 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                <button
+                  onClick={() => setIsDeletedEmpModalOpen(false)}
+                  className="text-[#7A695B] hover:text-[#2C2520] p-1 rounded-lg transition cursor-pointer"
+                  title="ปิดหน้าต่าง"
                 >
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-[#1C3A27]">
-                        โฉนดที่ดิน {b.titleDeedNumber}
-                      </span>
-                      <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
-                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-300">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="8" x2="12" y2="12" />
-                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                {undismissedDeletedEmpList.map((b) => (
+                  <div
+                    key={b._id}
+                    className="p-4 bg-white border border-amber-300/80 rounded-xl shadow-xs hover:border-amber-500 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  >
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-[#1C3A27]">
+                          โฉนดที่ดิน {b.titleDeedNumber}
+                        </span>
+                        <span className="text-[#7A695B]">ตำบล{b.subDistrict}</span>
+                        <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-300">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                          เจ้าหน้าที่ถูกลบ (ต้องระบุใหม่)
+                        </span>
+                      </div>
+                      <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
+                        <span><strong className="text-[#7A695B]">วันนัดหมาย:</strong> {formatDate(b.appointmentDate)}</span>
+                        <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
+                        <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
+                      <button
+                        onClick={() => {
+                          setIsDeletedEmpModalOpen(false);
+                          openEditBookingModal(b);
+                        }}
+                        className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="ระบุหรือมอบหมายเจ้าหน้าที่ใหม่"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="8.5" cy="7" r="4" />
+                          <line x1="20" y1="8" x2="20" y2="14" />
+                          <line x1="23" y1="11" x2="17" y2="11" />
                         </svg>
-                        เจ้าหน้าที่ถูกลบ (ต้องระบุใหม่)
-                      </span>
-                    </div>
-                    <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
-                      <span><strong className="text-[#7A695B]">วันนัดหมาย:</strong> {formatDate(b.appointmentDate)}</span>
-                      <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
-                      <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
+                        <span>มอบหมาย (Reassign)</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsDeletedEmpModalOpen(false);
+                          startCountdown("booking", b._id, b.titleDeedNumber);
+                        }}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="ลบรายการนัดหมาย"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        <span>ลบ (Delete)</span>
+                      </button>
+                      <button
+                        onClick={() => dismissDeletedEmp(b._id)}
+                        className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                        title="ละเว้นการแจ้งเตือนนี้"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                        <span>ละเว้น (Dismiss)</span>
+                      </button>
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#EAE0D4]">
-                    <button
-                      onClick={() => {
-                        setIsDeletedEmpModalOpen(false);
-                        openEditBookingModal(b);
-                      }}
-                      className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      title="ระบุหรือมอบหมายเจ้าหน้าที่ใหม่"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <line x1="20" y1="8" x2="20" y2="14" />
-                        <line x1="23" y1="11" x2="17" y2="11" />
-                      </svg>
-                      <span>มอบหมาย (Reassign)</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsDeletedEmpModalOpen(false);
-                        startCountdown("booking", b._id, b.titleDeedNumber);
-                      }}
-                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      title="ลบรายการนัดหมาย"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                      <span>ลบ (Delete)</span>
-                    </button>
-                    <button
-                      onClick={() => dismissDeletedEmp(b._id)}
-                      className="px-2.5 py-1.5 bg-[#EAE0D4] hover:bg-[#D5C9BE] text-[#4A3E37] text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
-                      title="ละเว้นการแจ้งเตือนนี้"
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                      <span>ละเว้น (Dismiss)</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
-              <button
-                onClick={() => dismissAllDeletedEmp(undismissedDeletedEmpList.map((x) => x._id))}
-                className="text-amber-800 hover:text-amber-900 font-bold underline cursor-pointer"
-              >
-                ละเว้นทั้งหมด ({undismissedDeletedEmpList.length} รายการ)
-              </button>
-              <button
-                onClick={() => setIsDeletedEmpModalOpen(false)}
-                className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
-              >
-                ปิดหน้าต่าง
-              </button>
+              <div className="flex items-center justify-between pt-3 border-t border-[#EAE0D4] text-xs">
+                <button
+                  onClick={() => dismissAllDeletedEmp(undismissedDeletedEmpList.map((x) => x._id))}
+                  className="text-amber-800 hover:text-amber-900 font-bold underline cursor-pointer"
+                >
+                  ละเว้นทั้งหมด ({undismissedDeletedEmpList.length} รายการ)
+                </button>
+                <button
+                  onClick={() => setIsDeletedEmpModalOpen(false)}
+                  className="px-4 py-2 bg-[#1C3A27] hover:bg-[#2D5A3F] text-white font-bold rounded-xl transition cursor-pointer"
+                >
+                  ปิดหน้าต่าง
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
 
       {/* ── Footer ── */}
       <footer className="py-4 text-center text-xs text-[#7A695B] border-t border-[#EAE0D4] mt-auto">
         ระบบตรวจสอบนัดโอนมรดกที่ดิน · LandQ Official Management System © 2026
       </footer>
-    </div>
+    </div >
   );
 }
