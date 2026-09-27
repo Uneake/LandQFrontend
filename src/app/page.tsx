@@ -92,8 +92,6 @@ export default function Home() {
     { key: "appointmentDate", label: "วันที่นัด" },
     { key: "titleDeedNumber", label: "โฉนดที่ดิน" },
     { key: "subDistrict", label: "ตำบล" },
-    { key: "heir", label: "เจ้ามรดก" },
-    { key: "appointedBy", label: "ผู้นัด" },
     { key: "fee", label: "ค่าธรรมเนียม" },
     { key: "employee", label: "เจ้าหน้าที่" },
   ];
@@ -268,14 +266,6 @@ export default function Home() {
                       <td className="px-4 py-4 text-[#4A3E37]">
                         {b.subDistrict}
                       </td>
-                      {/* เจ้ามรดก */}
-                      <td className="px-4 py-4 text-[#2C2520] font-medium">
-                        {b.heir}
-                      </td>
-                      {/* ผู้นัด */}
-                      <td className="px-4 py-4 text-[#4A3E37]">
-                        {b.appointedBy}
-                      </td>
                       {/* ค่าธรรมเนียม */}
                       <td className="px-4 py-4 whitespace-nowrap text-right">
                         <span className="inline-block px-3 py-1 bg-[#FDF6E2] border border-[#DFD7CC] text-[#6B4E00] text-sm font-bold rounded-lg">
@@ -336,14 +326,6 @@ export default function Home() {
                     <div>
                       <span className="text-[#7A695B] block text-xs font-semibold">ค่าธรรมเนียม</span>
                       <span className="text-[#6B4E00] font-bold text-base">{formatFee(b.fee)}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#7A695B] block text-xs font-semibold">เจ้ามรดก</span>
-                      <span className="text-[#2C2520] font-medium text-base">{b.heir || "-"}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#7A695B] block text-xs font-semibold">ผู้นัดหมาย</span>
-                      <span className="text-[#2C2520] font-medium text-base">{b.appointedBy || "-"}</span>
                     </div>
                     <div>
                       <span className="text-[#7A695B] block text-xs font-semibold">เจ้าหน้าที่</span>

@@ -11,10 +11,7 @@ export interface Booking {
   appointmentDate : string;
   titleDeedNumber : string;
   subDistrict     : string;
-  heir            : string;
-  appointedBy     : string;
   fee             : number;
-  registrationDate?: string;
   employee        : Employee | null;
   createdAt?      : string;
   updatedAt?      : string;
@@ -58,7 +55,7 @@ export default async function getBookings(params: {
 
   captureNewAccessToken(res);
   if (!res.ok) {
-    throw new Error("ไม่สามารถค้นหาข้อมูลการจองได้");
+    throw new Error("ไม่สามารถค้นหาข้อมูลการนัดหมายได้");
   }
 
   return res.json();

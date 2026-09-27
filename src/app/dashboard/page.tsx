@@ -171,10 +171,7 @@ export default function DashboardPage() {
     appointmentDate: "",
     titleDeedNumber: "",
     subDistrict: "",
-    heir: "",
-    appointedBy: "",
     fee: 0,
-    registrationDate: "",
     employee: "",
   });
   const [bookingModalLoading, setBookingModalLoading] = useState(false);
@@ -558,10 +555,7 @@ export default function DashboardPage() {
       appointmentDate: getTodayISODate(),
       titleDeedNumber: "",
       subDistrict: "",
-      heir: "",
-      appointedBy: "",
       fee: 0,
-      registrationDate: "",
       employee: employees[0]?._id || "",
     });
     setIsBookingModalOpen(true);
@@ -581,10 +575,7 @@ export default function DashboardPage() {
       appointmentDate: toISODate(b.appointmentDate) || b.appointmentDate || "",
       titleDeedNumber: b.titleDeedNumber || "",
       subDistrict: b.subDistrict || "",
-      heir: b.heir || "",
-      appointedBy: b.appointedBy || "",
       fee: b.fee || 0,
-      registrationDate: b.registrationDate || "",
       employee: empId,
     });
     setIsBookingModalOpen(true);
@@ -616,10 +607,7 @@ export default function DashboardPage() {
           appointmentDate: bookingForm.appointmentDate,
           titleDeedNumber: bookingForm.titleDeedNumber,
           subDistrict: bookingForm.subDistrict,
-          heir: bookingForm.heir,
-          appointedBy: bookingForm.appointedBy,
           fee: Number(bookingForm.fee),
-          registrationDate: bookingForm.registrationDate || undefined,
           employee: bookingForm.employee,
         };
         await updateBooking(accessToken, editingBooking._id, updateData);
@@ -630,10 +618,7 @@ export default function DashboardPage() {
           appointmentDate: bookingForm.appointmentDate,
           titleDeedNumber: bookingForm.titleDeedNumber,
           subDistrict: bookingForm.subDistrict,
-          heir: bookingForm.heir,
-          appointedBy: bookingForm.appointedBy,
           fee: Number(bookingForm.fee),
-          registrationDate: bookingForm.registrationDate || undefined,
           employee: bookingForm.employee,
         };
         await createBooking(accessToken, createData);
@@ -1177,8 +1162,6 @@ export default function DashboardPage() {
                       <th className="py-3 px-4">วันที่นัดหมาย</th>
                       <th className="py-3 px-4">เลขโฉนด</th>
                       <th className="py-3 px-4">ตำบล</th>
-                      <th className="py-3 px-4">ผู้รับมรดก</th>
-                      <th className="py-3 px-4">ผู้เพิ่มรายการ</th>
                       <th className="py-3 px-4">ค่าธรรมเนียม</th>
                       <th className="py-3 px-4">เจ้าหน้าที่</th>
                       <th className="py-3 px-4 text-center">การจัดการ</th>
@@ -1242,8 +1225,6 @@ export default function DashboardPage() {
                               {b.titleDeedNumber}
                             </td>
                             <td className="py-3.5 px-4 text-[#4A3E37]">{b.subDistrict}</td>
-                            <td className="py-3.5 px-4 text-[#4A3E37]">{b.heir}</td>
-                            <td className="py-3.5 px-4 text-[#4A3E37]">{b.appointedBy}</td>
                             <td className="py-3.5 px-4 font-bold text-[#C59B27]">
                               {b.fee?.toLocaleString("th-TH")} บาท
                             </td>
@@ -1931,34 +1912,6 @@ export default function DashboardPage() {
 
                   <div>
                     <label className="block font-bold text-[#4A3E37] mb-1">
-                      เจ้ามรดก
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={bookingForm.heir}
-                      onChange={(e) => setBookingForm({ ...bookingForm, heir: e.target.value })}
-                      placeholder="ชื่อ-นามสกุล เจ้ามรดก"
-                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#4A3E37] mb-1">
-                      ผู้นัดหมาย (Appointed By) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={bookingForm.appointedBy}
-                      onChange={(e) => setBookingForm({ ...bookingForm, appointedBy: e.target.value })}
-                      placeholder="ชื่อ-นามสกุล ผู้นัดหมาย"
-                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#4A3E37] mb-1">
                       ค่าธรรมเนียม (Fee - บาท) *
                     </label>
                     <input
@@ -1967,19 +1920,6 @@ export default function DashboardPage() {
                       min={0}
                       value={bookingForm.fee}
                       onChange={(e) => setBookingForm({ ...bookingForm, fee: Number(e.target.value) })}
-                      className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#4A3E37] mb-1">
-                      วันที่จดทะเบียน (Registration Date)
-                    </label>
-                    <input
-                      type="text"
-                      value={bookingForm.registrationDate}
-                      onChange={(e) => setBookingForm({ ...bookingForm, registrationDate: e.target.value })}
-                      placeholder="เช่น 1 มกราคม 2567"
                       className="w-full px-3 py-2 bg-white border border-[#D5C9BE] rounded-xl text-xs text-[#2C2520] outline-none focus:border-[#C59B27]"
                     />
                   </div>
@@ -2338,8 +2278,6 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
-                        <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
-                        <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
                         <span><strong className="text-[#7A695B]">เจ้าหน้าที่:</strong> {b.employee?.name || "-"}</span>
                       </div>
                     </div>
@@ -2470,8 +2408,6 @@ export default function DashboardPage() {
                       </div>
                       <div className="text-[#4A3E37] flex flex-wrap gap-x-4 gap-y-0.5 text-[11px]">
                         <span><strong className="text-[#7A695B]">วันนัดหมาย:</strong> {formatDate(b.appointmentDate)}</span>
-                        <span><strong className="text-[#7A695B]">ทายาท:</strong> {b.heir}</span>
-                        <span><strong className="text-[#7A695B]">ผู้นัดหมาย:</strong> {b.appointedBy}</span>
                       </div>
                     </div>
 

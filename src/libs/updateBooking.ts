@@ -5,10 +5,7 @@ export interface UpdateBookingData {
   appointmentDate?: string;
   titleDeedNumber?: string;
   subDistrict?: string;
-  heir?: string;
-  appointedBy?: string;
   fee?: number;
-  registrationDate?: string;
   employee?: string;
 }
 
