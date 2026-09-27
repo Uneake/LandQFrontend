@@ -1170,14 +1170,14 @@ export default function DashboardPage() {
                   <tbody className="divide-y divide-[#EAE0D4]/60 bg-white">
                     {bookingsLoading ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-[#7A695B]">
+                        <td colSpan={6} className="py-8 text-center text-[#7A695B]">
                           <div className="inline-block w-6 h-6 border-2 border-[#C59B27] border-t-transparent rounded-full animate-spin mb-2" />
                           <div>กำลังโหลดรายชื่อการนัดหมาย...</div>
                         </td>
                       </tr>
                     ) : bookings.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-[#7A695B]">
+                        <td colSpan={6} className="py-8 text-center text-[#7A695B]">
                           ไม่พบรายการนัดหมาย
                         </td>
                       </tr>
